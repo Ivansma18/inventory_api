@@ -1,0 +1,42 @@
+{
+  "name": "inventory-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "format": "prettier --check \"src/**/*.{ts,js}\" \"tests/**/*.ts\" \"*.{js,json,ts}\"",
+    "format:write": "prettier --write \"src/**/*.{ts,js}\" \"tests/**/*.ts\" \"*.{js,json,ts}\"",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.1",
+    "@hono/swagger-ui": "^0.6.1",
+    "@hono/zod-openapi": "^1.6.3",
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "better-auth": "^1.7.5",
+    "dotenv": "^18.0.3",
+    "hono": "^4.13.8",
+    "pg": "^8.23.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^22.20.4",
+    "eslint": "^9.39.5",
+    "prettier": "^3.9.8",
+    "prisma": "^7.10.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.70.1",
+    "vitest": "^4.1.11"
+  }
+}
