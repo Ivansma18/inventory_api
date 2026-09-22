@@ -26,6 +26,7 @@ Backend de inventario evolutivo, diseñado para crecer hacia ventas, ERP ligero 
 - Lee `docs/constitution.md` antes de crear o modificar specs, planes, tareas o código. Lee `docs/estrutura.md` antes de modificar la arquitectura y `docs/ruta.md` para respetar la fase de evolución aplicable.
 - Mantén separados los DTOs HTTP, los tipos de aplicación, las entidades de dominio y los modelos Prisma; crea mappers cuando eviten acoplamiento entre capas.
 - Los errores de negocio pertenecen a su feature y no conocen códigos HTTP; el manejador HTTP los traduce a respuestas.
+- Usa nombres que expresen intención y mantén una responsabilidad clara por función, clase o módulo. No dejes código muerto, comentado o duplicado; los comentarios deben explicar el porqué, no el qué.
 - Crea abstracciones, value objects, eventos o capas adicionales solo cuando exista una necesidad real.
 - Las reglas de negocio deben poder probarse sin Hono, Prisma ni PostgreSQL.
 - Al crear o modificar endpoints, actualiza los schemas Zod y el contrato OpenAPI/Swagger correspondiente.
