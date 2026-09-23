@@ -6,7 +6,7 @@
 - [x] T2. Crear la primera migración de Categories y relación temporal nullable desde Products; regenerar Prisma y cubrir el esquema con pruebas de integración. (RF-1, RF-3, RF-20, RF-21, RF-31, RF-33, RF-41)
       Hecho cuando: `Category` tiene UUID y nombre normalizado únicos, `Product` admite temporalmente relación nula, la clave foránea impide borrados inválidos y `npm run prisma:generate` finaliza correctamente.
 
-- [ ] T3. Implementar y probar `CategoryService` para crear, consultar y actualizar categorías con un repositorio falso. (RF-1, RF-3, RF-4, RF-5, RF-7, RF-8, RF-9, RF-10, RF-11, RF-12, RF-35, RF-36)
+- [x] T3. Implementar y probar `CategoryService` para crear, consultar y actualizar categorías con un repositorio falso. (RF-1, RF-3, RF-4, RF-5, RF-7, RF-8, RF-9, RF-10, RF-11, RF-12, RF-35, RF-36)
       Hecho cuando: las pruebas de aplicación cubren creación, duplicados incluso inactivos, consulta inexistente, actualización parcial, descripción nula y estados idempotentes sin infraestructura.
 
 - [ ] T4. Implementar y probar en aplicación el listado normalizado de categorías mediante un repositorio falso. (RF-13, RF-14, RF-15, RF-16, RF-17, RF-18, RF-19)
