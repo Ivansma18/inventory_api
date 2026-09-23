@@ -18,7 +18,7 @@
 - [x] T6. Implementar el listado del repositorio Prisma con filtros en PostgreSQL, conteo previo a paginacion y orden principal con desempates; agregar pruebas de integracion. (RF-8, RF-9, RF-14, RF-15, RF-22, RF-24, RF-25, RF-26)
       Hecho cuando: las pruebas de integracion verifican filtros, busqueda insensible a mayusculas, total correcto, pagina, limite y orden estable para todos los campos permitidos.
 
-- [ ] T7. Definir schemas Zod/OpenAPI y mappers HTTP de Products para cuerpos, UUID, query, respuestas y propiedades adicionales; cubrir los schemas con pruebas. (RF-1, RF-2, RF-3, RF-4, RF-5, RF-18, RF-22, RF-23, RF-24, RF-25, RF-26, RF-27, RF-29, RF-30, RF-31, RF-32)
+- [x] T7. Definir schemas Zod/OpenAPI y mappers HTTP de Products para cuerpos, UUID, query, respuestas y propiedades adicionales; cubrir los schemas con pruebas. (RF-1, RF-2, RF-3, RF-4, RF-5, RF-18, RF-22, RF-23, RF-24, RF-25, RF-26, RF-27, RF-29, RF-30, RF-31, RF-32)
       Hecho cuando: los schemas documentan entradas, respuestas y errores; descartan campos adicionales; `PATCH` rechaza un cuerpo sin campos reconocidos; y las pruebas cubren parametros invalidos con error `400`.
 
 - [ ] T8. Implementar rutas HTTP de creacion, consulta individual y actualizacion, incluida la traduccion local de errores de Products; probar sus contratos mediante `app.request`. (RF-1, RF-2, RF-3, RF-4, RF-5, RF-6, RF-7, RF-10, RF-11, RF-12, RF-13, RF-16, RF-17, RF-18, RF-19, RF-20, RF-21, RF-28, RF-29, RF-30, RF-31, RF-32)
