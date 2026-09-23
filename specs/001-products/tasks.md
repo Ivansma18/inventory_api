@@ -6,7 +6,7 @@
 - [x] T2. Incorporar el modelo `Product` en Prisma con UUID publico, SKU normalizado unico, precios decimales, estado y timestamps; crear la migracion y comprobar la generacion del cliente. (RF-1, RF-6, RF-10, RF-12, RF-13, RF-17, RF-28)
       Hecho cuando: la migracion crea las columnas, restricciones e indices planificados, y `npm run prisma:generate` finaliza correctamente.
 
-- [ ] T3. Implementar y probar en aplicacion las operaciones de crear, obtener y actualizar Products con un repositorio falso. (RF-1, RF-6, RF-7, RF-10, RF-11, RF-12, RF-13, RF-17, RF-19, RF-20, RF-21, RF-28, RF-29)
+- [x] T3. Implementar y probar en aplicacion las operaciones de crear, obtener y actualizar Products con un repositorio falso. (RF-1, RF-6, RF-7, RF-10, RF-11, RF-12, RF-13, RF-17, RF-19, RF-20, RF-21, RF-28, RF-29)
       Hecho cuando: las pruebas de aplicacion prueban creacion activa, SKU duplicado incluso inactivo, consulta inexistente, actualizacion parcial, descripcion nula y cambios de estado idempotentes sin usar Prisma ni Hono.
 
 - [ ] T4. Implementar y probar en aplicacion el contrato de listado normalizado con filtros acumulativos, defaults, paginacion y orden estable mediante repositorio falso. (RF-8, RF-9, RF-14, RF-15, RF-22, RF-24, RF-25, RF-26)
