@@ -3,7 +3,7 @@
 - [x] T1. Definir el dominio de Categories: entidad, normalización de nombre, invariantes, errores y contratos de repositorio; escribir pruebas unitarias puras. (RF-1, RF-2, RF-3, RF-4, RF-8, RF-9, RF-10, RF-11, RF-12, RF-35, RF-36)
       Hecho cuando: las pruebas cubren trim, nombre vacío, nombres equivalentes, descripción omitida o nula y cambios idempotentes de estado sin usar Hono, Prisma ni PostgreSQL.
 
-- [ ] T2. Crear la primera migración de Categories y relación temporal nullable desde Products; regenerar Prisma y cubrir el esquema con pruebas de integración. (RF-1, RF-3, RF-20, RF-21, RF-31, RF-33, RF-41)
+- [x] T2. Crear la primera migración de Categories y relación temporal nullable desde Products; regenerar Prisma y cubrir el esquema con pruebas de integración. (RF-1, RF-3, RF-20, RF-21, RF-31, RF-33, RF-41)
       Hecho cuando: `Category` tiene UUID y nombre normalizado únicos, `Product` admite temporalmente relación nula, la clave foránea impide borrados inválidos y `npm run prisma:generate` finaliza correctamente.
 
 - [ ] T3. Implementar y probar `CategoryService` para crear, consultar y actualizar categorías con un repositorio falso. (RF-1, RF-3, RF-4, RF-5, RF-7, RF-8, RF-9, RF-10, RF-11, RF-12, RF-35, RF-36)
