@@ -12,7 +12,7 @@
 - [x] T4. Implementar y probar en aplicacion el contrato de listado normalizado con filtros acumulativos, defaults, paginacion y orden estable mediante repositorio falso. (RF-8, RF-9, RF-14, RF-15, RF-22, RF-24, RF-25, RF-26)
       Hecho cuando: las pruebas verifican estado activo predeterminado, combinacion de `search` e `isActive`, busqueda vacia omitida, total filtrado, pagina y limite predeterminados, y desempates por `createdAt` y UUID.
 
-- [ ] T5. Implementar el repositorio Prisma para creacion, busqueda por UUID y SKU normalizado, y actualizacion; agregar pruebas de integracion con una base de datos de prueba. (RF-1, RF-6, RF-10, RF-12, RF-13, RF-17, RF-28)
+- [x] T5. Implementar el repositorio Prisma para creacion, busqueda por UUID y SKU normalizado, y actualizacion; agregar pruebas de integracion con una base de datos de prueba. (RF-1, RF-6, RF-10, RF-12, RF-13, RF-17, RF-28)
       Hecho cuando: las pruebas de integracion confirman el mapeo de persistencia, la restriccion unica de SKU normalizado y la conservacion de datos al actualizar.
 
 - [ ] T6. Implementar el listado del repositorio Prisma con filtros en PostgreSQL, conteo previo a paginacion y orden principal con desempates; agregar pruebas de integracion. (RF-8, RF-9, RF-14, RF-15, RF-22, RF-24, RF-25, RF-26)
