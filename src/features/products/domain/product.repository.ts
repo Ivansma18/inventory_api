@@ -11,6 +11,17 @@ export const productSortFields = [
 
 export type ProductSortField = (typeof productSortFields)[number];
 export type SortDirection = "asc" | "desc";
+export type ProductTieBreakerField = "createdAt" | "uuid";
+
+export interface ProductTieBreaker {
+  sort: ProductTieBreakerField;
+  order: "asc";
+}
+
+export const productListTieBreakers: readonly ProductTieBreaker[] = [
+  { sort: "createdAt", order: "asc" },
+  { sort: "uuid", order: "asc" },
+];
 
 export interface ProductListQuery {
   page: number;
@@ -19,6 +30,7 @@ export interface ProductListQuery {
   isActive: boolean;
   sort: ProductSortField;
   order: SortDirection;
+  tieBreakers: readonly ProductTieBreaker[];
 }
 
 export interface ProductListResult {

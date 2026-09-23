@@ -10,7 +10,13 @@ import {
   ProductNotFoundError,
   ProductSkuAlreadyExistsError,
 } from "../domain/product.errors.js";
-import type { ProductRepository } from "../domain/product.repository.js";
+import {
+  productListTieBreakers,
+  type ProductListResult,
+  type ProductRepository,
+  type ProductSortField,
+  type SortDirection,
+} from "../domain/product.repository.js";
 
 export interface CreateProductInput {
   sku: string;
@@ -21,6 +27,15 @@ export interface CreateProductInput {
 }
 
 export type UpdateProductInput = UpdateProductData;
+
+export interface ListProductsInput {
+  page?: number;
+  limit?: number;
+  search?: string;
+  isActive?: boolean;
+  sort?: ProductSortField;
+  order?: SortDirection;
+}
 
 export class ProductService {
   constructor(
@@ -56,6 +71,22 @@ export class ProductService {
     }
 
     return product;
+  }
+
+  async listProducts(
+    input: ListProductsInput = {},
+  ): Promise<ProductListResult> {
+    const search = input.search?.trim();
+
+    return this.products.findMany({
+      page: input.page ?? 1,
+      limit: input.limit ?? 15,
+      ...(search ? { search } : {}),
+      isActive: input.isActive ?? true,
+      sort: input.sort ?? "name",
+      order: input.order ?? "asc",
+      tieBreakers: productListTieBreakers,
+    });
   }
 
   async updateProduct(
