@@ -27,7 +27,7 @@
 - [x] T9. Implementar la ruta HTTP de listado, componer la API publica de la feature y registrar Products en `app.ts`; ampliar las pruebas de OpenAPI y regresion. (RF-8, RF-9, RF-14, RF-15, RF-16, RF-22, RF-23, RF-24, RF-25, RF-26, RF-27)
       Hecho cuando: `GET /products` aplica y serializa la consulta esperada, `/openapi.json` publica los cuatro endpoints de Products, y las pruebas existentes de salud y Swagger siguen pasando.
 
-- [ ] T10. Ejecutar la suite completa y las validaciones de calidad, corregir fallos atribuibles a la feature y verificar cobertura de contratos, migracion y dependencias. (RF-1 a RF-32)
+- [x] T10. Ejecutar la suite completa y las validaciones de calidad, corregir fallos atribuibles a la feature y verificar cobertura de contratos, migracion y dependencias. (RF-1 a RF-32)
       Hecho cuando: `npm run prisma:generate`, `npm test`, `npm run typecheck`, `npm run lint`, `npm run format` y `npm run build` finalizan correctamente, con migracion, OpenAPI y pruebas de Products actualizados.
 
 ## Orden y dependencias
