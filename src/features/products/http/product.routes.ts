@@ -2,10 +2,11 @@ import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 
 import type {
   CreateProductInput,
-  ProductService,
+  ListProductsInput,
   UpdateProductInput,
 } from "../application/product.service.js";
 import type { Product } from "../domain/product.entity.js";
+import type { ProductListResult } from "../domain/product.repository.js";
 import {
   InvalidProductNameError,
   InvalidProductPriceError,
@@ -14,11 +15,13 @@ import {
   ProductSkuAlreadyExistsError,
 } from "../domain/product.errors.js";
 import { errorHandler } from "../../../shared/errors/error-handler.js";
-import { toProductResponse } from "./product.mapper.js";
+import { toProductListResponse, toProductResponse } from "./product.mapper.js";
 import {
   createProductSchema,
   errorResponseSchema,
   productDataResponseSchema,
+  productListQuerySchema,
+  productListResponseSchema,
   productParamsSchema,
   updateProductSchema,
 } from "./product.schemas.js";
@@ -26,14 +29,12 @@ import {
 export interface ProductHttpService {
   createProduct(input: CreateProductInput): Promise<Product>;
   getProduct(uuid: string): Promise<Product>;
+  listProducts(input?: ListProductsInput): Promise<ProductListResult>;
   updateProduct(uuid: string, input: UpdateProductInput): Promise<Product>;
 }
 
 interface ProductRoutesDependencies {
-  service: Pick<
-    ProductService,
-    "createProduct" | "getProduct" | "updateProduct"
-  >;
+  service: ProductHttpService;
 }
 
 const createProductRoute = createRoute({
@@ -81,6 +82,23 @@ const getProductRoute = createRoute({
     404: {
       content: { "application/json": { schema: errorResponseSchema } },
       description: "Product not found",
+    },
+  },
+});
+
+const listProductsRoute = createRoute({
+  method: "get",
+  path: "/",
+  tags: ["Products"],
+  request: { query: productListQuerySchema },
+  responses: {
+    200: {
+      content: { "application/json": { schema: productListResponseSchema } },
+      description: "Products retrieved",
+    },
+    400: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "Invalid list query",
     },
   },
 });
@@ -147,6 +165,15 @@ export function createProductRoutes({
     const product = await service.getProduct(uuid);
 
     return context.json({ data: toProductResponse(product) }, 200);
+  });
+  routes.openapi(listProductsRoute, async (context) => {
+    const input = context.req.valid("query");
+    const result = await service.listProducts(input);
+
+    return context.json(
+      toProductListResponse(result, input.page ?? 1, input.limit ?? 15),
+      200,
+    );
   });
   routes.openapi(updateProductRoute, async (context) => {
     const { uuid } = context.req.valid("param");

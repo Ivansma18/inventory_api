@@ -11,17 +11,33 @@ describe("GET /health", () => {
   });
 
   it("publishes the OpenAPI document and Swagger UI", async () => {
-    const [openApiResponse, docsResponse] = await Promise.all([
-      app.request("/openapi.json"),
-      app.request("/docs"),
-    ]);
+    const [openApiResponse, docsResponse, productsResponse] = await Promise.all(
+      [
+        app.request("/openapi.json"),
+        app.request("/docs"),
+        app.request("/products"),
+      ],
+    );
 
     expect(openApiResponse.status).toBe(200);
     await expect(openApiResponse.json()).resolves.toMatchObject({
       paths: {
         "/health": expect.anything(),
+        "/products": {
+          get: expect.anything(),
+          post: expect.anything(),
+        },
+        "/products/{uuid}": {
+          get: expect.anything(),
+          patch: expect.anything(),
+        },
       },
     });
     expect(docsResponse.status).toBe(200);
+    expect(productsResponse.status).toBe(200);
+    await expect(productsResponse.json()).resolves.toMatchObject({
+      data: expect.any(Array),
+      pagination: { page: 1, limit: 15 },
+    });
   });
 });

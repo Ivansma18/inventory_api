@@ -27,6 +27,7 @@ function createService(
   return {
     createProduct: async () => product,
     getProduct: async () => product,
+    listProducts: async () => ({ products: [product], total: 1 }),
     updateProduct: async () => product,
     ...overrides,
   };
@@ -188,5 +189,60 @@ describe("Product routes", () => {
     });
 
     expect(response.status).toBe(400);
+  });
+
+  it("lists products with the query filters and pagination supplied to the service", async () => {
+    let receivedInput: unknown;
+    const app = createProductRoutes({
+      service: createService({
+        listProducts: async (input) => {
+          receivedInput = input;
+          return { products: [product], total: 3 };
+        },
+      }),
+    });
+
+    const response = await app.request(
+      "/?page=2&limit=25&search=%20desk%20&isActive=false&sort=salePrice&order=desc",
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      data: [{ uuid: product.uuid }],
+      pagination: { total: 3, page: 2, limit: 25 },
+    });
+    expect(receivedInput).toEqual({
+      page: 2,
+      limit: 25,
+      search: " desk ",
+      isActive: false,
+      sort: "salePrice",
+      order: "desc",
+    });
+  });
+
+  it("uses pagination defaults and rejects invalid list queries", async () => {
+    let receivedInput: unknown;
+    const app = createProductRoutes({
+      service: createService({
+        listProducts: async (input) => {
+          receivedInput = input;
+          return { products: [], total: 0 };
+        },
+      }),
+    });
+
+    const [defaultQuery, invalidQuery] = await Promise.all([
+      app.request("/"),
+      app.request("/?limit=101"),
+    ]);
+
+    expect(defaultQuery.status).toBe(200);
+    await expect(defaultQuery.json()).resolves.toEqual({
+      data: [],
+      pagination: { total: 0, page: 1, limit: 15 },
+    });
+    expect(receivedInput).toEqual({});
+    expect(invalidQuery.status).toBe(400);
   });
 });

@@ -2,6 +2,7 @@ import { swaggerUI } from "@hono/swagger-ui";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
 
+import { productRoutes } from "./features/products/index.js";
 import { errorHandler } from "./shared/errors/error-handler.js";
 
 const healthRoute = createRoute({
@@ -27,6 +28,7 @@ app.use("*", cors());
 app.onError(errorHandler);
 
 app.openapi(healthRoute, (context) => context.json({ status: "ok" }, 200));
+app.route("/products", productRoutes);
 
 app.doc("/openapi.json", {
   openapi: "3.0.3",
