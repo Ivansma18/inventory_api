@@ -3,7 +3,7 @@
 - [x] T1. Definir el nucleo de dominio de Products: entidad, normalizacion de SKU, invariantes, errores y contrato de repositorio; escribir sus pruebas unitarias puras. (RF-1, RF-2, RF-3, RF-4, RF-5, RF-6, RF-7, RF-12, RF-19, RF-20, RF-21, RF-29)
       Hecho cuando: las pruebas de dominio cubren valores validos, trim, campos vacios, precios invalidos y cero, descripcion omitida o nula, y no importan Hono, Prisma ni PostgreSQL.
 
-- [ ] T2. Incorporar el modelo `Product` en Prisma con UUID publico, SKU normalizado unico, precios decimales, estado y timestamps; crear la migracion y comprobar la generacion del cliente. (RF-1, RF-6, RF-10, RF-12, RF-13, RF-17, RF-28)
+- [x] T2. Incorporar el modelo `Product` en Prisma con UUID publico, SKU normalizado unico, precios decimales, estado y timestamps; crear la migracion y comprobar la generacion del cliente. (RF-1, RF-6, RF-10, RF-12, RF-13, RF-17, RF-28)
       Hecho cuando: la migracion crea las columnas, restricciones e indices planificados, y `npm run prisma:generate` finaliza correctamente.
 
 - [ ] T3. Implementar y probar en aplicacion las operaciones de crear, obtener y actualizar Products con un repositorio falso. (RF-1, RF-6, RF-7, RF-10, RF-11, RF-12, RF-13, RF-17, RF-19, RF-20, RF-21, RF-28, RF-29)
