@@ -7,6 +7,11 @@ import {
   updateProduct,
   type Product,
 } from "../../../src/features/products/domain/product.entity.js";
+import {
+  productListTieBreakers,
+  productSortFields,
+  type ProductSortField,
+} from "../../../src/features/products/domain/product.repository.js";
 import { PrismaProductRepository } from "../../../src/features/products/infrastructure/prisma-product.repository.js";
 import { prisma } from "../../../src/shared/database/prisma.js";
 
@@ -90,5 +95,182 @@ describe("PrismaProductRepository", () => {
     await expect(repository.findByUuid(product.uuid)).resolves.toEqual(
       updatedProduct,
     );
+  });
+
+  it("filters case-insensitively, combines search and state, and counts before pagination", async () => {
+    const activeFrame = createTestProduct({
+      sku: "FRAME-ACTIVE",
+      name: "Frame desk",
+    });
+    const inactiveFrame = createTestProduct({
+      sku: "FRAME-INACTIVE",
+      name: "Archived frame",
+      isActive: false,
+    });
+    const activeChair = createTestProduct({
+      sku: "CHAIR-ACTIVE",
+      name: "Office chair",
+    });
+    createdProductUuids.push(
+      activeFrame.uuid,
+      inactiveFrame.uuid,
+      activeChair.uuid,
+    );
+
+    await Promise.all([
+      repository.create(activeFrame),
+      repository.create(inactiveFrame),
+      repository.create(activeChair),
+    ]);
+
+    await expect(
+      repository.findMany({
+        page: 1,
+        limit: 1,
+        search: "fRaMe",
+        isActive: true,
+        sort: "name",
+        order: "asc",
+        tieBreakers: productListTieBreakers,
+      }),
+    ).resolves.toEqual({ products: [activeFrame], total: 1 });
+
+    await expect(
+      repository.findMany({
+        page: 1,
+        limit: 15,
+        search: "frame",
+        isActive: false,
+        sort: "name",
+        order: "asc",
+        tieBreakers: productListTieBreakers,
+      }),
+    ).resolves.toEqual({ products: [inactiveFrame], total: 1 });
+  });
+
+  it("paginates ordered matches and reports their unpaginated total", async () => {
+    const products = [
+      createTestProduct({ name: "Alpha" }),
+      createTestProduct({ name: "Bravo" }),
+      createTestProduct({ name: "Charlie" }),
+    ];
+    createdProductUuids.push(...products.map((product) => product.uuid));
+    await Promise.all(products.map((product) => repository.create(product)));
+
+    await expect(
+      repository.findMany({
+        page: 2,
+        limit: 1,
+        isActive: true,
+        sort: "name",
+        order: "asc",
+        tieBreakers: productListTieBreakers,
+      }),
+    ).resolves.toEqual({ products: [products[1]], total: 3 });
+  });
+
+  it("orders every supported field in both directions", async () => {
+    const products = [
+      createTestProduct({
+        uuid: "00000000-0000-4000-8000-000000000001",
+        sku: "SKU-B",
+        name: "Bravo",
+        purchasePrice: 20,
+        salePrice: 300,
+        createdAt: new Date("2026-09-23T12:00:00.000Z"),
+        updatedAt: new Date("2026-09-23T14:00:00.000Z"),
+      }),
+      createTestProduct({
+        uuid: "00000000-0000-4000-8000-000000000002",
+        sku: "SKU-A",
+        name: "Alpha",
+        purchasePrice: 10,
+        salePrice: 100,
+        createdAt: new Date("2026-09-23T11:00:00.000Z"),
+        updatedAt: new Date("2026-09-23T13:00:00.000Z"),
+      }),
+      createTestProduct({
+        uuid: "00000000-0000-4000-8000-000000000003",
+        sku: "SKU-C",
+        name: "Charlie",
+        purchasePrice: 30,
+        salePrice: 200,
+        createdAt: new Date("2026-09-23T13:00:00.000Z"),
+        updatedAt: new Date("2026-09-23T12:00:00.000Z"),
+      }),
+    ];
+    createdProductUuids.push(...products.map((product) => product.uuid));
+    await Promise.all(products.map((product) => repository.create(product)));
+
+    const expectedAscending: Record<ProductSortField, readonly Product[]> = {
+      name: [products[1], products[0], products[2]],
+      sku: [products[1], products[0], products[2]],
+      purchasePrice: [products[1], products[0], products[2]],
+      salePrice: [products[1], products[2], products[0]],
+      createdAt: [products[1], products[0], products[2]],
+      updatedAt: [products[2], products[1], products[0]],
+    } as const;
+
+    for (const sort of productSortFields) {
+      const expected = expectedAscending[sort];
+
+      await expect(
+        repository.findMany({
+          page: 1,
+          limit: 15,
+          isActive: true,
+          sort,
+          order: "asc",
+          tieBreakers: productListTieBreakers,
+        }),
+      ).resolves.toEqual({ products: expected, total: 3 });
+
+      await expect(
+        repository.findMany({
+          page: 1,
+          limit: 15,
+          isActive: true,
+          sort,
+          order: "desc",
+          tieBreakers: productListTieBreakers,
+        }),
+      ).resolves.toEqual({ products: [...expected].reverse(), total: 3 });
+    }
+  });
+
+  it("uses createdAt and UUID as stable ascending tie breakers", async () => {
+    const products = [
+      createTestProduct({
+        uuid: "00000000-0000-4000-8000-000000000003",
+        name: "Tied",
+        createdAt: new Date("2026-09-23T12:00:00.000Z"),
+      }),
+      createTestProduct({
+        uuid: "00000000-0000-4000-8000-000000000002",
+        name: "Tied",
+        createdAt: new Date("2026-09-23T11:00:00.000Z"),
+      }),
+      createTestProduct({
+        uuid: "00000000-0000-4000-8000-000000000001",
+        name: "Tied",
+        createdAt: new Date("2026-09-23T11:00:00.000Z"),
+      }),
+    ];
+    createdProductUuids.push(...products.map((product) => product.uuid));
+    await Promise.all(products.map((product) => repository.create(product)));
+
+    await expect(
+      repository.findMany({
+        page: 1,
+        limit: 15,
+        isActive: true,
+        sort: "name",
+        order: "asc",
+        tieBreakers: productListTieBreakers,
+      }),
+    ).resolves.toEqual({
+      products: [products[2], products[1], products[0]],
+      total: 3,
+    });
   });
 });

@@ -15,7 +15,7 @@
 - [x] T5. Implementar el repositorio Prisma para creacion, busqueda por UUID y SKU normalizado, y actualizacion; agregar pruebas de integracion con una base de datos de prueba. (RF-1, RF-6, RF-10, RF-12, RF-13, RF-17, RF-28)
       Hecho cuando: las pruebas de integracion confirman el mapeo de persistencia, la restriccion unica de SKU normalizado y la conservacion de datos al actualizar.
 
-- [ ] T6. Implementar el listado del repositorio Prisma con filtros en PostgreSQL, conteo previo a paginacion y orden principal con desempates; agregar pruebas de integracion. (RF-8, RF-9, RF-14, RF-15, RF-22, RF-24, RF-25, RF-26)
+- [x] T6. Implementar el listado del repositorio Prisma con filtros en PostgreSQL, conteo previo a paginacion y orden principal con desempates; agregar pruebas de integracion. (RF-8, RF-9, RF-14, RF-15, RF-22, RF-24, RF-25, RF-26)
       Hecho cuando: las pruebas de integracion verifican filtros, busqueda insensible a mayusculas, total correcto, pagina, limite y orden estable para todos los campos permitidos.
 
 - [ ] T7. Definir schemas Zod/OpenAPI y mappers HTTP de Products para cuerpos, UUID, query, respuestas y propiedades adicionales; cubrir los schemas con pruebas. (RF-1, RF-2, RF-3, RF-4, RF-5, RF-18, RF-22, RF-23, RF-24, RF-25, RF-26, RF-27, RF-29, RF-30, RF-31, RF-32)

@@ -1,9 +1,11 @@
 import type {
+  Prisma,
   PrismaClient,
   Product as PrismaProduct,
 } from "../../../generated/prisma/client.js";
 import type { Product } from "../domain/product.entity.js";
 import type {
+  ProductListQuery,
   ProductListResult,
   ProductRepository,
 } from "../domain/product.repository.js";
@@ -44,8 +46,36 @@ export class PrismaProductRepository implements ProductRepository {
     return product ? toDomainProduct(product) : null;
   }
 
-  async findMany(): Promise<ProductListResult> {
-    throw new Error("Product listing is not implemented yet.");
+  async findMany(query: ProductListQuery): Promise<ProductListResult> {
+    const where: Prisma.ProductWhereInput = {
+      isActive: query.isActive,
+      ...(query.search
+        ? {
+            OR: [
+              { sku: { contains: query.search, mode: "insensitive" } },
+              { name: { contains: query.search, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    };
+    const orderBy: Prisma.ProductOrderByWithRelationInput[] = [
+      { [query.sort]: query.order } as Prisma.ProductOrderByWithRelationInput,
+      ...query.tieBreakers.map(
+        ({ sort, order }) =>
+          ({ [sort]: order }) as Prisma.ProductOrderByWithRelationInput,
+      ),
+    ];
+    const [products, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where,
+        orderBy,
+        skip: (query.page - 1) * query.limit,
+        take: query.limit,
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    return { products: products.map(toDomainProduct), total };
   }
 
   async update(product: Product): Promise<Product> {
