@@ -457,7 +457,6 @@ createProduct()
 getProduct()
 listProducts()
 updateProduct()
-deactivateProduct()
 ```
 
 ---
@@ -469,13 +468,18 @@ POST   /products
 GET    /products
 GET    /products/:uuid
 PATCH  /products/:uuid
-DELETE /products/:uuid
 ```
 
-`DELETE` inicialmente será soft delete:
+El estado del producto se actualiza con `PATCH`:
 
 ```text
-isActive = false
+isActive = true | false
+```
+
+Los productos nuevos se crean con:
+
+```text
+isActive = true
 ```
 
 ---
@@ -485,7 +489,7 @@ isActive = false
 Preparar:
 
 ```http
-GET /products?page=1&limit=20
+GET /products?page=1&limit=15
 ```
 
 Agregar:
@@ -497,10 +501,21 @@ sort
 order
 ```
 
+Valores predeterminados:
+
+```text
+page = 1
+limit = 15
+sort = name
+order = asc
+```
+
+`limit` no puede superar `100`. La búsqueda se realiza por SKU y nombre sin distinguir mayúsculas y minúsculas.
+
 Ejemplo:
 
 ```http
-GET /products?search=frame&page=1&limit=20
+GET /products?search=frame&page=1&limit=15
 ```
 
 ---
@@ -523,8 +538,12 @@ ProductNotFoundError
 404
 
 ProductSkuAlreadyExistsError
-        ↓
+         ↓
 409
+
+Datos de producto, UUID o parámetros de listado inválidos
+        ↓
+400
 ```
 
 ---
@@ -546,7 +565,7 @@ create product
 duplicate SKU
 find product
 update product
-deactivate product
+update product state
 ```
 
 Utilizar:
