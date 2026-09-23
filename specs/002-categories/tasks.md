@@ -1,6 +1,6 @@
 # Tareas - Spec 002 Categorías
 
-- [ ] T1. Definir el dominio de Categories: entidad, normalización de nombre, invariantes, errores y contratos de repositorio; escribir pruebas unitarias puras. (RF-1, RF-2, RF-3, RF-4, RF-8, RF-9, RF-10, RF-11, RF-12, RF-35, RF-36)
+- [x] T1. Definir el dominio de Categories: entidad, normalización de nombre, invariantes, errores y contratos de repositorio; escribir pruebas unitarias puras. (RF-1, RF-2, RF-3, RF-4, RF-8, RF-9, RF-10, RF-11, RF-12, RF-35, RF-36)
       Hecho cuando: las pruebas cubren trim, nombre vacío, nombres equivalentes, descripción omitida o nula y cambios idempotentes de estado sin usar Hono, Prisma ni PostgreSQL.
 
 - [ ] T2. Crear la primera migración de Categories y relación temporal nullable desde Products; regenerar Prisma y cubrir el esquema con pruebas de integración. (RF-1, RF-3, RF-20, RF-21, RF-31, RF-33, RF-41)
