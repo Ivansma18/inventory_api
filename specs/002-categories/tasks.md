@@ -18,7 +18,7 @@
 - [x] T6. Implementar las operaciones de desactivación y eliminación de Categories con verificación de productos asociados, transacciones serializables y pruebas de integración. (RF-20, RF-21, RF-31, RF-41)
       Hecho cuando: categorías sin productos se desactivan o eliminan según el contrato, las categorías en uso devuelven conflicto y las pruebas concurrentes no dejan productos asociados a categorías eliminadas o inactivas.
 
-- [ ] T7. Definir schemas Zod/OpenAPI y mappers HTTP de Categories para cuerpos, UUID, query, respuestas y propiedades adicionales; cubrirlos con pruebas. (RF-1, RF-2, RF-4, RF-6, RF-13 a RF-20, RF-29, RF-30, RF-35, RF-36, RF-40)
+- [x] T7. Definir schemas Zod/OpenAPI y mappers HTTP de Categories para cuerpos, UUID, query, respuestas y propiedades adicionales; cubrirlos con pruebas. (RF-1, RF-2, RF-4, RF-6, RF-13 a RF-20, RF-29, RF-30, RF-35, RF-36, RF-40)
       Hecho cuando: los schemas validan entradas y query, descartan campos no reconocidos, rechazan actualizaciones vacías y documentan respuestas y errores aplicables.
 
 - [ ] T8. Implementar las rutas HTTP de Categories, traducir errores de negocio y probar los cinco contratos con `app.request`. (RF-1 a RF-21, RF-28 a RF-31, RF-35 a RF-37, RF-40)
