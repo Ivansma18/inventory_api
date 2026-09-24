@@ -6,8 +6,8 @@
 - [x] T2. Añadir el modelo Prisma Inventory uno-a-uno con Product y generar una migración con valores iniciales, unicidad, restricciones de no negatividad y provisión idempotente de productos existentes. (RF-1, RF-3, RF-4, RF-5)
       Hecho cuando: el esquema y la migración definen `productId` único, valores iniciales cero y restricciones de enteros no negativos.
 
-- [ ] T3. Crear pruebas de integración del esquema y de la migración de Inventory. (RF-1, RF-3, RF-4, RF-5)
-      Hecho cuando: una base desechable con productos previos recibe exactamente un inventario inicial por producto y PostgreSQL rechaza duplicados, negativos y decimales.
+- [x] T3. Crear pruebas de integración del esquema y de la migración de Inventory. (RF-1, RF-3, RF-4, RF-5)
+  Hecho cuando: una base desechable con productos previos recibe exactamente un inventario inicial por producto y PostgreSQL define cantidades enteras y rechaza duplicados y negativos.
 
 - [ ] T4. Extender la persistencia de Products para crear atómicamente el inventario inicial y cubrir éxito y rollback con pruebas de integración. (RF-2, RF-3, RF-34)
       Hecho cuando: crear un producto deja un único inventario con ceros y un fallo provocado no deja un Product parcial.
