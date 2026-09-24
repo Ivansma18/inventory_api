@@ -39,7 +39,7 @@
 - [x] T13. Tras completar la clasificación temporal, crear y verificar la segunda migración que exige categoría obligatoria en Products. (RF-42, RF-43)
       Hecho cuando: en una base de prueba sin relaciones nulas la migración endurece la relación; con una relación nula aborta atómicamente sin modificar esquema ni datos. Esta tarea no se inicia hasta confirmar que no quedan productos sin categoría en el despliegue previo.
 
-- [ ] T14. Ejecutar la suite completa y validaciones de calidad, corregir fallos atribuibles a la fase y verificar migraciones, contratos y dependencias. (RF-1 a RF-46)
+- [x] T14. Ejecutar la suite completa y validaciones de calidad, corregir fallos atribuibles a la fase y verificar migraciones, contratos y dependencias. (RF-1 a RF-46)
       Hecho cuando: `npm run prisma:generate`, `npm test`, `npm run typecheck`, `npm run lint`, `npm run format` y `npm run build` finalizan correctamente; OpenAPI, las dos etapas de migración y la separación entre features quedan verificadas.
 
 ## Orden y dependencias
