@@ -15,7 +15,7 @@
 - [x] T5. Definir contratos de repositorio, tipos de consulta, desempates y error de dominio para Inventory. (RF-3, RF-9, RF-11, RF-12 a RF-23, RF-33)
       Hecho cuando: el dominio expone contratos sin Prisma ni HTTP para detalle, listado y actualización de mínimo, con los filtros y orden permitidos.
 
-- [ ] T6. Implementar InventoryService con casos de uso de detalle, listado y actualización de stock mínimo, junto con fakes y pruebas de aplicación. (RF-9, RF-11, RF-16, RF-17, RF-24, RF-25, RF-33)
+- [x] T6. Implementar InventoryService con casos de uso de detalle, listado y actualización de stock mínimo, junto con fakes y pruebas de aplicación. (RF-9, RF-11, RF-16, RF-17, RF-24, RF-25, RF-33)
       Hecho cuando: las pruebas de aplicación verifican producto inexistente, valores predeterminados, búsqueda normalizada, mínimo idempotente y producto inactivo.
 
 - [ ] T7. Implementar PrismaInventoryRepository para detalle y actualización de mínimo, con mapeo a dominio y pruebas de integración. (RF-3, RF-9, RF-11, RF-24, RF-25, RF-33)
