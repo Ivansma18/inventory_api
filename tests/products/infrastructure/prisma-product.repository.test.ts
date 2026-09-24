@@ -7,22 +7,35 @@ import {
   updateProduct,
   type Product,
 } from "../../../src/features/products/domain/product.entity.js";
+import { ProductCategoryAssignmentConflictError } from "../../../src/features/products/domain/product.errors.js";
 import {
   productListTieBreakers,
   productSortFields,
   type ProductSortField,
 } from "../../../src/features/products/domain/product.repository.js";
 import { PrismaProductRepository } from "../../../src/features/products/infrastructure/prisma-product.repository.js";
+import {
+  createCategory,
+  updateCategory,
+  type Category,
+} from "../../../src/features/categories/domain/category.entity.js";
+import { PrismaCategoryRepository } from "../../../src/features/categories/infrastructure/prisma-category.repository.js";
 import { prisma } from "../../../src/shared/database/prisma.js";
 
 const repository = new PrismaProductRepository(prisma);
+const categoryRepository = new PrismaCategoryRepository(prisma);
 let createdProductUuids: string[] = [];
+let createdCategoryUuids: string[] = [];
 
 afterEach(async () => {
   await prisma.product.deleteMany({
     where: { uuid: { in: createdProductUuids } },
   });
+  await prisma.category.deleteMany({
+    where: { uuid: { in: createdCategoryUuids } },
+  });
   createdProductUuids = [];
+  createdCategoryUuids = [];
 });
 
 function createTestProduct(overrides: Partial<Product> = {}): Product {
@@ -38,6 +51,23 @@ function createTestProduct(overrides: Partial<Product> = {}): Product {
       description: "Created by an integration test",
       purchasePrice: 100.25,
       salePrice: 150.5,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    }),
+    ...overrides,
+  };
+}
+
+function createTestCategory(overrides: Partial<Category> = {}): Category {
+  const timestamp = new Date("2026-09-23T10:00:00.000Z");
+  const uuid = overrides.uuid ?? randomUUID();
+  const name = overrides.name ?? `Category ${uuid}`;
+
+  return {
+    ...createCategory({
+      uuid,
+      name,
+      description: "Created by a product integration test",
       createdAt: timestamp,
       updatedAt: timestamp,
     }),
@@ -95,6 +125,109 @@ describe("PrismaProductRepository", () => {
     await expect(repository.findByUuid(product.uuid)).resolves.toEqual(
       updatedProduct,
     );
+  });
+
+  it("persists and maps category UUIDs when creating and reassigning products", async () => {
+    const firstCategory = createTestCategory();
+    const secondCategory = createTestCategory();
+    const product = createTestProduct({ categoryUuid: firstCategory.uuid });
+    createdCategoryUuids.push(firstCategory.uuid, secondCategory.uuid);
+    createdProductUuids.push(product.uuid);
+    await Promise.all([
+      categoryRepository.create(firstCategory),
+      categoryRepository.create(secondCategory),
+    ]);
+
+    await expect(repository.create(product)).resolves.toEqual(product);
+
+    const reassignedProduct = updateProduct(
+      product,
+      { categoryUuid: secondCategory.uuid },
+      new Date("2026-09-23T11:00:00.000Z"),
+    );
+
+    await expect(repository.update(reassignedProduct)).resolves.toEqual(
+      reassignedProduct,
+    );
+    await expect(repository.findByUuid(product.uuid)).resolves.toEqual(
+      reassignedProduct,
+    );
+  });
+
+  it("rejects missing and inactive category associations as conflicts", async () => {
+    const inactiveCategory = createTestCategory({ isActive: false });
+    createdCategoryUuids.push(inactiveCategory.uuid);
+    await categoryRepository.create(inactiveCategory);
+
+    await expect(
+      repository.create(createTestProduct({ categoryUuid: randomUUID() })),
+    ).rejects.toThrow(ProductCategoryAssignmentConflictError);
+    await expect(
+      repository.create(
+        createTestProduct({ categoryUuid: inactiveCategory.uuid }),
+      ),
+    ).rejects.toThrow(ProductCategoryAssignmentConflictError);
+  });
+
+  it("translates an association that loses a deactivation race into a conflict", async () => {
+    const category = createTestCategory();
+    const product = createTestProduct({ categoryUuid: category.uuid });
+    createdCategoryUuids.push(category.uuid);
+    createdProductUuids.push(product.uuid);
+    await categoryRepository.create(category);
+    const deactivatedCategory = updateCategory(
+      category,
+      { isActive: false },
+      new Date("2026-09-23T11:00:00.000Z"),
+    );
+
+    const [association, deactivation] = await Promise.all([
+      repository
+        .create(product)
+        .then(() => "created" as const)
+        .catch((error: unknown) => {
+          if (error instanceof ProductCategoryAssignmentConflictError) {
+            return "conflict" as const;
+          }
+
+          throw error;
+        }),
+      categoryRepository.updateIfUnused(deactivatedCategory),
+    ]);
+
+    if (association === "created") {
+      expect(deactivation).toBe("in_use");
+    } else {
+      expect(deactivation).toEqual(deactivatedCategory);
+    }
+  });
+
+  it("translates an association that loses a deletion race into a conflict", async () => {
+    const category = createTestCategory();
+    const product = createTestProduct({ categoryUuid: category.uuid });
+    createdCategoryUuids.push(category.uuid);
+    createdProductUuids.push(product.uuid);
+    await categoryRepository.create(category);
+
+    const [association, deletion] = await Promise.all([
+      repository
+        .create(product)
+        .then(() => "created" as const)
+        .catch((error: unknown) => {
+          if (error instanceof ProductCategoryAssignmentConflictError) {
+            return "conflict" as const;
+          }
+
+          throw error;
+        }),
+      categoryRepository.deleteIfUnused(category.uuid),
+    ]);
+
+    if (association === "created") {
+      expect(deletion).toBe("in_use");
+    } else {
+      expect(deletion).toBe("deleted");
+    }
   });
 
   it("filters case-insensitively, combines search and state, and counts before pagination", async () => {

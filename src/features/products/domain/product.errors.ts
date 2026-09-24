@@ -48,3 +48,10 @@ export class ProductCategoryInactiveError extends Error {
     this.name = "ProductCategoryInactiveError";
   }
 }
+
+export class ProductCategoryAssignmentConflictError extends Error {
+  constructor() {
+    super("Product category assignment could not be completed.");
+    this.name = "ProductCategoryAssignmentConflictError";
+  }
+}

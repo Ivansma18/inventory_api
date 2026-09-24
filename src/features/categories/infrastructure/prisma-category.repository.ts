@@ -178,9 +178,27 @@ export class PrismaCategoryRepository implements CategoryRepository {
 }
 
 function isTransactionConflict(error: unknown): boolean {
+  const source =
+    error instanceof Error && "cause" in error ? error.cause : error;
+
   return (
-    error instanceof Prisma.PrismaClientKnownRequestError &&
-    error.code === "P2034"
+    (source instanceof Prisma.PrismaClientKnownRequestError &&
+      source.code === "P2034") ||
+    (typeof source === "object" &&
+      source !== null &&
+      "sqlState" in source &&
+      (source.sqlState === "40001" || source.sqlState === "40P01")) ||
+    (typeof source === "object" &&
+      source !== null &&
+      "kind" in source &&
+      source.kind === "TransactionWriteConflict") ||
+    (source instanceof Error &&
+      source.message === "TransactionWriteConflict") ||
+    (typeof error === "object" &&
+      error !== null &&
+      "kind" in error &&
+      error.kind === "TransactionWriteConflict") ||
+    (error instanceof Error && error.message === "TransactionWriteConflict")
   );
 }
 

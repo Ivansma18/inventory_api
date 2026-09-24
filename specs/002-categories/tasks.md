@@ -27,7 +27,7 @@
 - [x] T9. Extender el dominio y la aplicación de Products para `categoryUuid`, inyectar el lector público de Categories y escribir pruebas con falsos. (RF-22 a RF-27, RF-32 a RF-34, RF-38, RF-39, RF-44 a RF-46)
       Hecho cuando: crear exige una categoría activa, actualizar valida primero una categoría proporcionada, conserva la asociación omitida y permite temporalmente `null` solo en productos heredados.
 
-- [ ] T10. Extender el repositorio Prisma de Products para la relación y asegurar la asignación frente a desactivación o eliminación concurrente; agregar pruebas de integración. (RF-22 a RF-27, RF-32 a RF-34, RF-41, RF-44 a RF-46)
+- [x] T10. Extender el repositorio Prisma de Products para la relación y asegurar la asignación frente a desactivación o eliminación concurrente; agregar pruebas de integración. (RF-22 a RF-27, RF-32 a RF-34, RF-41, RF-44 a RF-46)
       Hecho cuando: persistencia y mapeo conservan `categoryUuid`, las asociaciones inválidas se rechazan y una asociación que pierde una carrera de concurrencia se traduce en conflicto.
 
 - [ ] T11. Extender schemas, mapper, rutas y OpenAPI de Products para `categoryUuid`; cubrir contratos HTTP y prioridad de errores. (RF-22 a RF-29, RF-32, RF-34, RF-38, RF-39, RF-41, RF-44 a RF-46)
