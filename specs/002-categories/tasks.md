@@ -12,7 +12,7 @@
 - [x] T4. Implementar y probar en aplicación el listado normalizado de categorías mediante un repositorio falso. (RF-13, RF-14, RF-15, RF-16, RF-17, RF-18, RF-19)
       Hecho cuando: las pruebas cubren estado activo predeterminado, filtros acumulativos, búsqueda vacía, paginación, orden permitido y desempates estables.
 
-- [ ] T5. Implementar el repositorio Prisma de Categories para creación, búsqueda, actualización y listado; agregar pruebas de integración. (RF-1, RF-3, RF-5, RF-7, RF-13, RF-14, RF-15, RF-16, RF-17, RF-18, RF-19, RF-36)
+- [x] T5. Implementar el repositorio Prisma de Categories para creación, búsqueda, actualización y listado; agregar pruebas de integración. (RF-1, RF-3, RF-5, RF-7, RF-13, RF-14, RF-15, RF-16, RF-17, RF-18, RF-19, RF-36)
       Hecho cuando: las pruebas de PostgreSQL confirman mapeo, unicidad normalizada, filtros, total previo a paginación, orden y representación nullable.
 
 - [ ] T6. Implementar las operaciones de desactivación y eliminación de Categories con verificación de productos asociados, transacciones serializables y pruebas de integración. (RF-20, RF-21, RF-31, RF-41)
