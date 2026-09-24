@@ -8,6 +8,10 @@ export type InventoryStatus = "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
 export interface Inventory {
   uuid: string;
   productUuid: string;
+  sku: string;
+  name: string;
+  categoryUuid: string | null;
+  isActive: boolean;
   quantity: number;
   minimumStock: number;
   updatedAt: Date;
@@ -16,6 +20,10 @@ export interface Inventory {
 export interface CreateInventoryData {
   uuid: string;
   productUuid: string;
+  sku: string;
+  name: string;
+  categoryUuid: string | null;
+  isActive: boolean;
   quantity: number;
   minimumStock: number;
   updatedAt: Date;
@@ -25,6 +33,10 @@ export function createInventory(data: CreateInventoryData): Inventory {
   return {
     uuid: data.uuid,
     productUuid: data.productUuid,
+    sku: data.sku,
+    name: data.name,
+    categoryUuid: data.categoryUuid,
+    isActive: data.isActive,
     quantity: validateQuantity(data.quantity),
     minimumStock: validateMinimumStock(data.minimumStock),
     updatedAt: data.updatedAt,

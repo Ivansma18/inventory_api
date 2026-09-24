@@ -22,6 +22,10 @@ function createValidInventory(
   return createInventory({
     uuid: "b1c7b78c-7f8d-4d4a-a01a-2e8d41dfb15d",
     productUuid: "550e8400-e29b-41d4-a716-446655440000",
+    sku: "DESK-001",
+    name: "Desk",
+    categoryUuid: "177c46a4-33c4-4c1e-a0ff-485dfb7591d7",
+    isActive: true,
     quantity: 0,
     minimumStock: 0,
     updatedAt: createdAt,
@@ -34,6 +38,10 @@ describe("Inventory", () => {
     expect(createValidInventory({ quantity: 4, minimumStock: 2 })).toEqual({
       uuid: "b1c7b78c-7f8d-4d4a-a01a-2e8d41dfb15d",
       productUuid: "550e8400-e29b-41d4-a716-446655440000",
+      sku: "DESK-001",
+      name: "Desk",
+      categoryUuid: "177c46a4-33c4-4c1e-a0ff-485dfb7591d7",
+      isActive: true,
       quantity: 4,
       minimumStock: 2,
       updatedAt: createdAt,

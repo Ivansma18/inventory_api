@@ -12,7 +12,7 @@
 - [x] T4. Extender la persistencia de Products para crear atómicamente el inventario inicial y cubrir éxito y rollback con pruebas de integración. (RF-2, RF-3, RF-34)
       Hecho cuando: crear un producto deja un único inventario con ceros y un fallo provocado no deja un Product parcial.
 
-- [ ] T5. Definir contratos de repositorio, tipos de consulta, desempates y error de dominio para Inventory. (RF-3, RF-9, RF-11, RF-12 a RF-23, RF-33)
+- [x] T5. Definir contratos de repositorio, tipos de consulta, desempates y error de dominio para Inventory. (RF-3, RF-9, RF-11, RF-12 a RF-23, RF-33)
       Hecho cuando: el dominio expone contratos sin Prisma ni HTTP para detalle, listado y actualización de mínimo, con los filtros y orden permitidos.
 
 - [ ] T6. Implementar InventoryService con casos de uso de detalle, listado y actualización de stock mínimo, junto con fakes y pruebas de aplicación. (RF-9, RF-11, RF-16, RF-17, RF-24, RF-25, RF-33)

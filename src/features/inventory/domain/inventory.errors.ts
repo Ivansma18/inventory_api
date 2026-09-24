@@ -11,3 +11,10 @@ export class InvalidInventoryMinimumStockError extends Error {
     this.name = "InvalidInventoryMinimumStockError";
   }
 }
+
+export class InventoryProductNotFoundError extends Error {
+  constructor() {
+    super("Inventory product was not found.");
+    this.name = "InventoryProductNotFoundError";
+  }
+}
