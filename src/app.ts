@@ -3,6 +3,7 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
 
 import { categoryRoutes } from "./features/categories/index.js";
+import { inventoryRoutes } from "./features/inventory/index.js";
 import { productRoutes } from "./features/products/index.js";
 import { errorHandler } from "./shared/errors/error-handler.js";
 
@@ -31,6 +32,7 @@ app.onError(errorHandler);
 app.openapi(healthRoute, (context) => context.json({ status: "ok" }, 200));
 app.route("/products", productRoutes);
 app.route("/categories", categoryRoutes);
+app.route("/inventory", inventoryRoutes);
 
 app.doc("/openapi.json", {
   openapi: "3.0.3",

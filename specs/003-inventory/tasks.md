@@ -30,7 +30,7 @@
 - [x] T10. Implementar mapper y rutas HTTP de Inventory, con traducción `404`, respuestas `data` y pruebas de rutas. (RF-9, RF-10, RF-11, RF-13, RF-15, RF-17 a RF-19, RF-21, RF-22, RF-24 a RF-30, RF-33)
       Hecho cuando: los tres endpoints devuelven las formas públicas especificadas y las pruebas cubren éxito, validación, filtros, paginación y producto inexistente.
 
-- [ ] T11. Componer la feature Inventory, registrar `/inventory` y actualizar la comprobación de OpenAPI y Swagger. (RF-31, RF-32)
+- [x] T11. Componer la feature Inventory, registrar `/inventory` y actualizar la comprobación de OpenAPI y Swagger. (RF-31, RF-32)
       Hecho cuando: los tres endpoints aparecen en `/openapi.json`, están disponibles en Swagger y no existe una ruta pública para modificar cantidad.
 
 - [ ] T12. Ajustar el manejador global de errores a `INTERNAL_ERROR` y añadir regresión HTTP para el fallo atómico de creación de producto. (RF-34)

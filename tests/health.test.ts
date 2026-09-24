@@ -16,12 +16,14 @@ describe("GET /health", () => {
       docsResponse,
       productsResponse,
       categoriesResponse,
+      inventoryResponse,
       missingProductResponse,
     ] = await Promise.all([
       app.request("/openapi.json"),
       app.request("/docs"),
       app.request("/products"),
       app.request("/categories"),
+      app.request("/inventory"),
       app.request("/products/550e8400-e29b-41d4-a716-446655440099"),
     ]);
 
@@ -48,8 +50,20 @@ describe("GET /health", () => {
           patch: expect.anything(),
           delete: expect.anything(),
         },
+        "/inventory": {
+          get: expect.anything(),
+        },
+        "/inventory/{productUuid}": {
+          get: expect.anything(),
+        },
+        "/inventory/{productUuid}/minimum-stock": {
+          patch: expect.anything(),
+        },
       },
     });
+    expect(
+      openApiDocument.paths["/inventory/{productUuid}/quantity"],
+    ).toBeUndefined();
     expect(openApiDocument.components.schemas.CreateProduct).toMatchObject({
       required: expect.arrayContaining(["categoryUuid"]),
       properties: {
@@ -69,12 +83,17 @@ describe("GET /health", () => {
     expect(docsResponse.status).toBe(200);
     expect(productsResponse.status).toBe(200);
     expect(categoriesResponse.status).toBe(200);
+    expect(inventoryResponse.status).toBe(200);
     expect(missingProductResponse.status).toBe(404);
     await expect(productsResponse.json()).resolves.toMatchObject({
       data: expect.any(Array),
       pagination: { page: 1, limit: 15 },
     });
     await expect(categoriesResponse.json()).resolves.toMatchObject({
+      data: expect.any(Array),
+      pagination: { page: 1, limit: 15 },
+    });
+    await expect(inventoryResponse.json()).resolves.toMatchObject({
       data: expect.any(Array),
       pagination: { page: 1, limit: 15 },
     });
