@@ -9,7 +9,7 @@
 - [x] T3. Crear pruebas de integración del esquema y de la migración de Inventory. (RF-1, RF-3, RF-4, RF-5)
   Hecho cuando: una base desechable con productos previos recibe exactamente un inventario inicial por producto y PostgreSQL define cantidades enteras y rechaza duplicados y negativos.
 
-- [ ] T4. Extender la persistencia de Products para crear atómicamente el inventario inicial y cubrir éxito y rollback con pruebas de integración. (RF-2, RF-3, RF-34)
+- [x] T4. Extender la persistencia de Products para crear atómicamente el inventario inicial y cubrir éxito y rollback con pruebas de integración. (RF-2, RF-3, RF-34)
       Hecho cuando: crear un producto deja un único inventario con ceros y un fallo provocado no deja un Product parcial.
 
 - [ ] T5. Definir contratos de repositorio, tipos de consulta, desempates y error de dominio para Inventory. (RF-3, RF-9, RF-11, RF-12 a RF-23, RF-33)
