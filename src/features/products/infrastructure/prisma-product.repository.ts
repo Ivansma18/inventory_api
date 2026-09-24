@@ -107,7 +107,7 @@ export class PrismaProductRepository implements ProductRepository {
     product: Product,
     operation: (
       transaction: Prisma.TransactionClient,
-      categoryId: number | null,
+      categoryId: number,
     ) => Promise<PrismaProductWithCategory>,
   ): Promise<Product> {
     try {
@@ -135,9 +135,9 @@ export class PrismaProductRepository implements ProductRepository {
   private async findActiveCategoryId(
     transaction: Prisma.TransactionClient,
     categoryUuid: string | null,
-  ): Promise<number | null> {
+  ): Promise<number> {
     if (categoryUuid === null) {
-      return null;
+      throw new ProductCategoryAssignmentConflictError();
     }
 
     const category = await transaction.category.findUnique({

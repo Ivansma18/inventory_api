@@ -36,7 +36,7 @@
 - [x] T12. Componer la API pública de Categories, inyectar su lector en Products, registrar `/categories` en `app.ts` y ampliar las pruebas de OpenAPI y regresión. (RF-22 a RF-27, RF-34, RF-37, RF-41)
       Hecho cuando: no hay importaciones cruzadas de infraestructura, `/openapi.json` publica los nueve endpoints de Products y Categories y salud, Swagger y manejo global de errores continúan funcionando.
 
-- [ ] T13. Tras completar la clasificación temporal, crear y verificar la segunda migración que exige categoría obligatoria en Products. (RF-42, RF-43)
+- [x] T13. Tras completar la clasificación temporal, crear y verificar la segunda migración que exige categoría obligatoria en Products. (RF-42, RF-43)
       Hecho cuando: en una base de prueba sin relaciones nulas la migración endurece la relación; con una relación nula aborta atómicamente sin modificar esquema ni datos. Esta tarea no se inicia hasta confirmar que no quedan productos sin categoría en el despliegue previo.
 
 - [ ] T14. Ejecutar la suite completa y validaciones de calidad, corregir fallos atribuibles a la fase y verificar migraciones, contratos y dependencias. (RF-1 a RF-46)

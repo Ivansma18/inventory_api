@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
   createProduct,
@@ -26,6 +26,14 @@ const repository = new PrismaProductRepository(prisma);
 const categoryRepository = new PrismaCategoryRepository(prisma);
 let createdProductUuids: string[] = [];
 let createdCategoryUuids: string[] = [];
+let defaultCategoryUuid: string;
+
+beforeEach(async () => {
+  const category = createTestCategory();
+  defaultCategoryUuid = category.uuid;
+  createdCategoryUuids.push(category.uuid);
+  await categoryRepository.create(category);
+});
 
 afterEach(async () => {
   await prisma.product.deleteMany({
@@ -51,6 +59,7 @@ function createTestProduct(overrides: Partial<Product> = {}): Product {
       description: "Created by an integration test",
       purchasePrice: 100.25,
       salePrice: 150.5,
+      categoryUuid: overrides.categoryUuid ?? defaultCategoryUuid,
       createdAt: timestamp,
       updatedAt: timestamp,
     }),

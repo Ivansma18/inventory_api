@@ -50,22 +50,74 @@ describe("Category Prisma schema", () => {
     });
   });
 
-  it("allows products without a category during the temporary migration", async () => {
-    const product = await prisma.product.create({
-      data: {
-        uuid: randomUUID(),
-        sku: `SKU-${randomUUID()}`,
-        skuNormalized: `sku-${randomUUID()}`,
-        name: "Unclassified desk",
-        purchasePrice: 100,
-        salePrice: 150,
-      },
-    });
+  it("requires a category after the final migration", async () => {
+    await expect(
+      prisma.$executeRaw`
+        INSERT INTO "Product" (
+          "uuid", "sku", "skuNormalized", "name", "purchasePrice", "salePrice"
+        ) VALUES (
+          ${randomUUID()}::uuid,
+          ${`SKU-${randomUUID()}`},
+          ${`sku-${randomUUID()}`},
+          'Unclassified desk',
+          100,
+          150
+        )
+      `,
+    ).rejects.toThrow();
+  });
+
+  it("aborts the migration check without changing a nullable column", async () => {
+    const tableName = `ProductCategoryMigration${randomUUID().replaceAll("-", "")}`;
+
+    await prisma.$executeRawUnsafe(
+      `CREATE TABLE "${tableName}" ("categoryId" INTEGER)`,
+    );
 
     try {
-      expect(product.categoryId).toBeNull();
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "${tableName}" ("categoryId") VALUES (NULL)`,
+      );
+
+      await expect(
+        prisma.$transaction(async (transaction) => {
+          const [{ count }] = await transaction.$queryRawUnsafe<
+            { count: bigint }[]
+          >(
+            `SELECT COUNT(*)::bigint AS count FROM "${tableName}" WHERE "categoryId" IS NULL`,
+          );
+
+          if (count > 0n) {
+            throw new Error("Unclassified products exist.");
+          }
+
+          await transaction.$executeRawUnsafe(
+            `ALTER TABLE "${tableName}" ALTER COLUMN "categoryId" SET NOT NULL`,
+          );
+        }),
+      ).rejects.toThrow("Unclassified products exist.");
+
+      const [{ is_nullable: isNullable }] = await prisma.$queryRawUnsafe<
+        { is_nullable: string }[]
+      >(
+        `SELECT is_nullable FROM information_schema.columns WHERE table_name = '${tableName}' AND column_name = 'categoryId'`,
+      );
+
+      expect(isNullable).toBe("YES");
+
+      await prisma.$executeRawUnsafe(`DELETE FROM "${tableName}"`);
+      await prisma.$executeRawUnsafe(
+        `ALTER TABLE "${tableName}" ALTER COLUMN "categoryId" SET NOT NULL`,
+      );
+
+      const [{ is_nullable: hardenedIsNullable }] =
+        await prisma.$queryRawUnsafe<{ is_nullable: string }[]>(
+          `SELECT is_nullable FROM information_schema.columns WHERE table_name = '${tableName}' AND column_name = 'categoryId'`,
+        );
+
+      expect(hardenedIsNullable).toBe("NO");
     } finally {
-      await prisma.product.delete({ where: { id: product.id } });
+      await prisma.$executeRawUnsafe(`DROP TABLE "${tableName}"`);
     }
   });
 

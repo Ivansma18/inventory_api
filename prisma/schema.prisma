@@ -17,8 +17,8 @@ model Product {
   purchasePrice Decimal   @db.Decimal(18, 2)
   salePrice     Decimal   @db.Decimal(18, 2)
   isActive      Boolean   @default(true)
-  categoryId    Int?
-  category      Category? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  categoryId    Int
+  category      Category  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
