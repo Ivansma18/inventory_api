@@ -9,7 +9,7 @@
 - [x] T3. Implementar y probar `CategoryService` para crear, consultar y actualizar categorías con un repositorio falso. (RF-1, RF-3, RF-4, RF-5, RF-7, RF-8, RF-9, RF-10, RF-11, RF-12, RF-35, RF-36)
       Hecho cuando: las pruebas de aplicación cubren creación, duplicados incluso inactivos, consulta inexistente, actualización parcial, descripción nula y estados idempotentes sin infraestructura.
 
-- [ ] T4. Implementar y probar en aplicación el listado normalizado de categorías mediante un repositorio falso. (RF-13, RF-14, RF-15, RF-16, RF-17, RF-18, RF-19)
+- [x] T4. Implementar y probar en aplicación el listado normalizado de categorías mediante un repositorio falso. (RF-13, RF-14, RF-15, RF-16, RF-17, RF-18, RF-19)
       Hecho cuando: las pruebas cubren estado activo predeterminado, filtros acumulativos, búsqueda vacía, paginación, orden permitido y desempates estables.
 
 - [ ] T5. Implementar el repositorio Prisma de Categories para creación, búsqueda, actualización y listado; agregar pruebas de integración. (RF-1, RF-3, RF-5, RF-7, RF-13, RF-14, RF-15, RF-16, RF-17, RF-18, RF-19, RF-36)

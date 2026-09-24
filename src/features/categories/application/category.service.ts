@@ -10,7 +10,13 @@ import {
   CategoryNameAlreadyExistsError,
   CategoryNotFoundError,
 } from "../domain/category.errors.js";
-import type { CategoryRepository } from "../domain/category.repository.js";
+import {
+  categoryListTieBreakers,
+  type CategoryListResult,
+  type CategoryRepository,
+  type CategorySortField,
+  type SortDirection,
+} from "../domain/category.repository.js";
 
 export interface CreateCategoryInput {
   name: string;
@@ -18,6 +24,15 @@ export interface CreateCategoryInput {
 }
 
 export type UpdateCategoryInput = UpdateCategoryData;
+
+export interface ListCategoriesInput {
+  page?: number;
+  limit?: number;
+  search?: string;
+  isActive?: boolean;
+  sort?: CategorySortField;
+  order?: SortDirection;
+}
 
 export class CategoryService {
   constructor(
@@ -53,6 +68,22 @@ export class CategoryService {
     }
 
     return category;
+  }
+
+  async listCategories(
+    input: ListCategoriesInput = {},
+  ): Promise<CategoryListResult> {
+    const search = input.search?.trim();
+
+    return this.categories.findMany({
+      page: input.page ?? 1,
+      limit: input.limit ?? 15,
+      ...(search ? { search } : {}),
+      isActive: input.isActive ?? true,
+      sort: input.sort ?? "name",
+      order: input.order ?? "asc",
+      tieBreakers: categoryListTieBreakers,
+    });
   }
 
   async updateCategory(
