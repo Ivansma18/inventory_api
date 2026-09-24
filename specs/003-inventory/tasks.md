@@ -3,7 +3,7 @@
 - [x] T1. Definir la entidad Inventory, sus invariantes enteras no negativas, el cálculo de estado y sus pruebas unitarias. (RF-4, RF-5, RF-6, RF-7, RF-8, RF-24, RF-25)
       Hecho cuando: las pruebas de dominio cubren los tres estados, mínimo cero, mínimo negativo y decimal rechazados, y actualización idempotente del mínimo sin alterar cantidad.
 
-- [ ] T2. Añadir el modelo Prisma Inventory uno-a-uno con Product y generar una migración con valores iniciales, unicidad, restricciones de no negatividad y provisión idempotente de productos existentes. (RF-1, RF-3, RF-4, RF-5)
+- [x] T2. Añadir el modelo Prisma Inventory uno-a-uno con Product y generar una migración con valores iniciales, unicidad, restricciones de no negatividad y provisión idempotente de productos existentes. (RF-1, RF-3, RF-4, RF-5)
       Hecho cuando: el esquema y la migración definen `productId` único, valores iniciales cero y restricciones de enteros no negativos.
 
 - [ ] T3. Crear pruebas de integración del esquema y de la migración de Inventory. (RF-1, RF-3, RF-4, RF-5)
