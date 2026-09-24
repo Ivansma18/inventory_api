@@ -21,7 +21,7 @@
 - [x] T7. Implementar PrismaInventoryRepository para detalle y actualización de mínimo, con mapeo a dominio y pruebas de integración. (RF-3, RF-9, RF-11, RF-24, RF-25, RF-33)
       Hecho cuando: el repositorio devuelve el resumen de producto requerido, actualiza solo el mínimo y admite productos inactivos.
 
-- [ ] T8. Implementar el listado Prisma de Inventory con filtros relacionales, estados calculados, total previo a paginación y orden estable; añadir sus pruebas de integración. (RF-12, RF-14, RF-16, RF-20, RF-22, RF-23)
+- [x] T8. Implementar el listado Prisma de Inventory con filtros relacionales, estados calculados, total previo a paginación y orden estable; añadir sus pruebas de integración. (RF-12, RF-14, RF-16, RF-20, RF-22, RF-23)
       Hecho cuando: las pruebas cubren actividad, estado, búsqueda, filtros combinados, total sin paginar, todos los órdenes y desempates por SKU y UUID.
 
 - [ ] T9. Definir los schemas Zod/OpenAPI y las pruebas de validación para params, query, cuerpo de actualización y respuestas de Inventory. (RF-10, RF-13, RF-15, RF-18, RF-19, RF-21, RF-26, RF-28, RF-29, RF-30)
