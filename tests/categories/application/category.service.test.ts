@@ -6,6 +6,7 @@ import {
   type Category,
 } from "../../../src/features/categories/domain/category.entity.js";
 import {
+  CategoryHasAssociatedProductsError,
   CategoryNameAlreadyExistsError,
   CategoryNotFoundError,
 } from "../../../src/features/categories/domain/category.errors.js";
@@ -17,11 +18,16 @@ import { CategoryService } from "../../../src/features/categories/application/ca
 
 class FakeCategoryRepository implements CategoryRepository {
   private readonly categories = new Map<string, Category>();
+  private readonly associatedCategoryUuids: ReadonlySet<string>;
 
-  constructor(categories: Category[] = []) {
+  constructor(
+    categories: Category[] = [],
+    associatedCategoryUuids: readonly string[] = [],
+  ) {
     for (const category of categories) {
       this.categories.set(category.uuid, category);
     }
+    this.associatedCategoryUuids = new Set(associatedCategoryUuids);
   }
 
   async create(category: Category): Promise<Category> {
@@ -50,14 +56,34 @@ class FakeCategoryRepository implements CategoryRepository {
     return category;
   }
 
-  async deleteByUuid(): Promise<void> {
-    throw new Error("Deletion is not part of this fake repository yet.");
+  async deleteIfUnused(
+    uuid: string,
+  ): Promise<"deleted" | "not_found" | "in_use"> {
+    if (!this.categories.has(uuid)) {
+      return "not_found";
+    }
+
+    if (this.associatedCategoryUuids.has(uuid)) {
+      return "in_use";
+    }
+
+    this.categories.delete(uuid);
+    return "deleted";
   }
 
-  async hasAssociatedProducts(): Promise<boolean> {
-    throw new Error(
-      "Associated product checks are not part of this fake repository yet.",
-    );
+  async updateIfUnused(
+    category: Category,
+  ): Promise<Category | "not_found" | "in_use"> {
+    if (!this.categories.has(category.uuid)) {
+      return "not_found";
+    }
+
+    if (this.associatedCategoryUuids.has(category.uuid)) {
+      return "in_use";
+    }
+
+    this.categories.set(category.uuid, category);
+    return category;
   }
 }
 
@@ -76,8 +102,14 @@ function createStoredCategory(overrides: Partial<Category> = {}): Category {
   };
 }
 
-function createService(categories: Category[] = []) {
-  const repository = new FakeCategoryRepository(categories);
+function createService(
+  categories: Category[] = [],
+  associatedCategoryUuids: readonly string[] = [],
+) {
+  const repository = new FakeCategoryRepository(
+    categories,
+    associatedCategoryUuids,
+  );
   const timestamp = new Date("2026-09-23T11:00:00.000Z");
   const service = new CategoryService(
     repository,
@@ -200,5 +232,37 @@ describe("CategoryService", () => {
     await expect(
       service.updateCategory(storedCategory.uuid, { isActive: true }),
     ).resolves.toMatchObject({ isActive: true });
+  });
+
+  it("rejects deactivation when products are associated", async () => {
+    const storedCategory = createStoredCategory();
+    const { service } = createService([storedCategory], [storedCategory.uuid]);
+
+    await expect(
+      service.updateCategory(storedCategory.uuid, { isActive: false }),
+    ).rejects.toThrow(CategoryHasAssociatedProductsError);
+  });
+
+  it("permanently deletes unused categories and rejects categories in use", async () => {
+    const unusedCategory = createStoredCategory();
+    const usedCategory = createStoredCategory({
+      uuid: "9d1c7e33-98fc-4c14-9afb-0d8ac4e6f4b1",
+      name: "Lighting",
+      nameNormalized: "lighting",
+    });
+    const { service } = createService(
+      [unusedCategory, usedCategory],
+      [usedCategory.uuid],
+    );
+
+    await expect(service.deleteCategory(unusedCategory.uuid)).resolves.toEqual({
+      uuid: unusedCategory.uuid,
+    });
+    await expect(service.getCategory(unusedCategory.uuid)).rejects.toThrow(
+      CategoryNotFoundError,
+    );
+    await expect(service.deleteCategory(usedCategory.uuid)).rejects.toThrow(
+      CategoryHasAssociatedProductsError,
+    );
   });
 });

@@ -7,6 +7,7 @@ import {
   type UpdateCategoryData,
 } from "../domain/category.entity.js";
 import {
+  CategoryHasAssociatedProductsError,
   CategoryNameAlreadyExistsError,
   CategoryNotFoundError,
 } from "../domain/category.errors.js";
@@ -103,6 +104,34 @@ export class CategoryService {
       }
     }
 
-    return this.categories.update(updatedCategory);
+    if (input.isActive !== false) {
+      return this.categories.update(updatedCategory);
+    }
+
+    const result = await this.categories.updateIfUnused(updatedCategory);
+
+    if (result === "in_use") {
+      throw new CategoryHasAssociatedProductsError();
+    }
+
+    if (result === "not_found") {
+      throw new CategoryNotFoundError();
+    }
+
+    return result;
+  }
+
+  async deleteCategory(uuid: string): Promise<{ uuid: string }> {
+    const result = await this.categories.deleteIfUnused(uuid);
+
+    if (result === "in_use") {
+      throw new CategoryHasAssociatedProductsError();
+    }
+
+    if (result === "not_found") {
+      throw new CategoryNotFoundError();
+    }
+
+    return { uuid };
   }
 }

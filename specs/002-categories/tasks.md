@@ -15,7 +15,7 @@
 - [x] T5. Implementar el repositorio Prisma de Categories para creación, búsqueda, actualización y listado; agregar pruebas de integración. (RF-1, RF-3, RF-5, RF-7, RF-13, RF-14, RF-15, RF-16, RF-17, RF-18, RF-19, RF-36)
       Hecho cuando: las pruebas de PostgreSQL confirman mapeo, unicidad normalizada, filtros, total previo a paginación, orden y representación nullable.
 
-- [ ] T6. Implementar las operaciones de desactivación y eliminación de Categories con verificación de productos asociados, transacciones serializables y pruebas de integración. (RF-20, RF-21, RF-31, RF-41)
+- [x] T6. Implementar las operaciones de desactivación y eliminación de Categories con verificación de productos asociados, transacciones serializables y pruebas de integración. (RF-20, RF-21, RF-31, RF-41)
       Hecho cuando: categorías sin productos se desactivan o eliminan según el contrato, las categorías en uso devuelven conflicto y las pruebas concurrentes no dejan productos asociados a categorías eliminadas o inactivas.
 
 - [ ] T7. Definir schemas Zod/OpenAPI y mappers HTTP de Categories para cuerpos, UUID, query, respuestas y propiedades adicionales; cubrirlos con pruebas. (RF-1, RF-2, RF-4, RF-6, RF-13 a RF-20, RF-29, RF-30, RF-35, RF-36, RF-40)

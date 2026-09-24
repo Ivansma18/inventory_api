@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { Prisma } from "../../../src/generated/prisma/client.js";
 import {
   createCategory,
   updateCategory,
@@ -19,6 +20,9 @@ const repository = new PrismaCategoryRepository(prisma);
 let createdCategoryUuids: string[] = [];
 
 afterEach(async () => {
+  await prisma.product.deleteMany({
+    where: { category: { uuid: { in: createdCategoryUuids } } },
+  });
   await prisma.category.deleteMany({
     where: { uuid: { in: createdCategoryUuids } },
   });
@@ -40,6 +44,25 @@ function createTestCategory(overrides: Partial<Category> = {}): Category {
     }),
     ...overrides,
   };
+}
+
+async function createAssociatedProduct(categoryUuid: string): Promise<void> {
+  const category = await prisma.category.findUniqueOrThrow({
+    where: { uuid: categoryUuid },
+    select: { id: true },
+  });
+
+  await prisma.product.create({
+    data: {
+      uuid: randomUUID(),
+      sku: `SKU-${randomUUID()}`,
+      skuNormalized: `sku-${randomUUID()}`,
+      name: "Associated product",
+      purchasePrice: 10,
+      salePrice: 20,
+      categoryId: category.id,
+    },
+  });
 }
 
 describe("PrismaCategoryRepository", () => {
@@ -254,5 +277,125 @@ describe("PrismaCategoryRepository", () => {
       categories: [categories[2], categories[1], categories[0]],
       total: 3,
     });
+  });
+
+  it("deactivates an unused category in a serializable transaction", async () => {
+    const category = createTestCategory();
+    createdCategoryUuids.push(category.uuid);
+    await repository.create(category);
+
+    const updatedCategory = updateCategory(
+      category,
+      { isActive: false },
+      new Date("2026-09-23T11:00:00.000Z"),
+    );
+
+    await expect(repository.updateIfUnused(updatedCategory)).resolves.toEqual(
+      updatedCategory,
+    );
+  });
+
+  it("does not deactivate or delete a category with associated products", async () => {
+    const category = createTestCategory();
+    createdCategoryUuids.push(category.uuid);
+    await repository.create(category);
+    await createAssociatedProduct(category.uuid);
+
+    const updatedCategory = updateCategory(
+      category,
+      { isActive: false },
+      new Date("2026-09-23T11:00:00.000Z"),
+    );
+
+    await expect(repository.updateIfUnused(updatedCategory)).resolves.toBe(
+      "in_use",
+    );
+    await expect(repository.deleteIfUnused(category.uuid)).resolves.toBe(
+      "in_use",
+    );
+    await expect(repository.findByUuid(category.uuid)).resolves.toEqual(
+      category,
+    );
+  });
+
+  it("permanently deletes an unused category and reports an unknown UUID", async () => {
+    const category = createTestCategory();
+    createdCategoryUuids.push(category.uuid);
+    await repository.create(category);
+
+    await expect(repository.deleteIfUnused(category.uuid)).resolves.toBe(
+      "deleted",
+    );
+    await expect(repository.findByUuid(category.uuid)).resolves.toBeNull();
+    await expect(repository.deleteIfUnused(randomUUID())).resolves.toBe(
+      "not_found",
+    );
+  });
+
+  it("does not leave products associated with a category deactivated concurrently", async () => {
+    const category = createTestCategory();
+    createdCategoryUuids.push(category.uuid);
+    await repository.create(category);
+    const updatedCategory = updateCategory(
+      category,
+      { isActive: false },
+      new Date("2026-09-23T11:00:00.000Z"),
+    );
+
+    const association = prisma
+      .$transaction(
+        async (transaction) => {
+          const storedCategory = await transaction.category.findUnique({
+            where: { uuid: category.uuid },
+            select: { id: true, isActive: true },
+          });
+
+          if (!storedCategory?.isActive) {
+            return "inactive";
+          }
+
+          await transaction.product.create({
+            data: {
+              uuid: randomUUID(),
+              sku: `SKU-${randomUUID()}`,
+              skuNormalized: `sku-${randomUUID()}`,
+              name: "Concurrent product",
+              purchasePrice: 10,
+              salePrice: 20,
+              categoryId: storedCategory.id,
+            },
+          });
+
+          return "associated";
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      )
+      .catch((error: unknown) => {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2034"
+        ) {
+          return "conflict";
+        }
+
+        throw error;
+      });
+
+    await Promise.all([
+      association,
+      repository.updateIfUnused(updatedCategory),
+    ]);
+
+    const [storedCategory, associatedProducts] = await Promise.all([
+      prisma.category.findUnique({
+        where: { uuid: category.uuid },
+        select: { isActive: true },
+      }),
+      prisma.product.count({ where: { category: { uuid: category.uuid } } }),
+    ]);
+
+    expect(storedCategory?.isActive === false && associatedProducts > 0).toBe(
+      false,
+    );
   });
 });

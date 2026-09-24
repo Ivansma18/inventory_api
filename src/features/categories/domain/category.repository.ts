@@ -31,12 +31,16 @@ export interface CategoryListResult {
   total: number;
 }
 
+export type CategoryUsageCheckResult = "not_found" | "in_use";
+
 export interface CategoryRepository {
   create(category: Category): Promise<Category>;
   findByNameNormalized(nameNormalized: string): Promise<Category | null>;
   findByUuid(uuid: string): Promise<Category | null>;
   findMany(query: CategoryListQuery): Promise<CategoryListResult>;
   update(category: Category): Promise<Category>;
-  deleteByUuid(uuid: string): Promise<void>;
-  hasAssociatedProducts(uuid: string): Promise<boolean>;
+  updateIfUnused(
+    category: Category,
+  ): Promise<Category | CategoryUsageCheckResult>;
+  deleteIfUnused(uuid: string): Promise<"deleted" | CategoryUsageCheckResult>;
 }
