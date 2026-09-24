@@ -24,7 +24,7 @@
 - [x] T8. Implementar el listado Prisma de Inventory con filtros relacionales, estados calculados, total previo a paginación y orden estable; añadir sus pruebas de integración. (RF-12, RF-14, RF-16, RF-20, RF-22, RF-23)
       Hecho cuando: las pruebas cubren actividad, estado, búsqueda, filtros combinados, total sin paginar, todos los órdenes y desempates por SKU y UUID.
 
-- [ ] T9. Definir los schemas Zod/OpenAPI y las pruebas de validación para params, query, cuerpo de actualización y respuestas de Inventory. (RF-10, RF-13, RF-15, RF-18, RF-19, RF-21, RF-26, RF-28, RF-29, RF-30)
+- [x] T9. Definir los schemas Zod/OpenAPI y las pruebas de validación para params, query, cuerpo de actualización y respuestas de Inventory. (RF-10, RF-13, RF-15, RF-18, RF-19, RF-21, RF-26, RF-28, RF-29, RF-30)
       Hecho cuando: los contratos aceptan solo los valores especificados, eliminan campos desconocidos y rechazan entradas inválidas con `400`.
 
 - [ ] T10. Implementar mapper y rutas HTTP de Inventory, con traducción `404`, respuestas `data` y pruebas de rutas. (RF-9, RF-10, RF-11, RF-13, RF-15, RF-17 a RF-19, RF-21, RF-22, RF-24 a RF-30, RF-33)
