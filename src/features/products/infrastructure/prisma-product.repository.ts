@@ -106,6 +106,7 @@ function toDomainProduct(product: PrismaProduct): Product {
     description: product.description,
     purchasePrice: product.purchasePrice.toNumber(),
     salePrice: product.salePrice.toNumber(),
+    categoryUuid: null,
     isActive: product.isActive,
     createdAt: product.createdAt,
     updatedAt: product.updatedAt,

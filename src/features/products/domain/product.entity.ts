@@ -12,6 +12,7 @@ export interface Product {
   description: string | null;
   purchasePrice: number;
   salePrice: number;
+  categoryUuid: string | null;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -24,6 +25,7 @@ export interface CreateProductData {
   description?: string | null;
   purchasePrice: number;
   salePrice: number;
+  categoryUuid?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +36,7 @@ export interface UpdateProductData {
   description?: string | null;
   purchasePrice?: number;
   salePrice?: number;
+  categoryUuid?: string;
   isActive?: boolean;
 }
 
@@ -48,6 +51,7 @@ export function createProduct(data: CreateProductData): Product {
     description: data.description ?? null,
     purchasePrice: validatePrice(data.purchasePrice),
     salePrice: validatePrice(data.salePrice),
+    categoryUuid: data.categoryUuid ?? null,
     isActive: true,
     createdAt: data.createdAt,
     updatedAt: data.updatedAt,
@@ -76,6 +80,10 @@ export function updateProduct(
       data.salePrice === undefined
         ? product.salePrice
         : validatePrice(data.salePrice),
+    categoryUuid:
+      data.categoryUuid === undefined
+        ? product.categoryUuid
+        : data.categoryUuid,
     isActive: data.isActive === undefined ? product.isActive : data.isActive,
     updatedAt,
   };

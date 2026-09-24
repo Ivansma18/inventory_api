@@ -24,7 +24,7 @@
 - [x] T8. Implementar las rutas HTTP de Categories, traducir errores de negocio y probar los cinco contratos con `app.request`. (RF-1 a RF-21, RF-28 a RF-31, RF-35 a RF-37, RF-40)
       Hecho cuando: `POST`, ambos `GET`, `PATCH` y `DELETE /categories` devuelven las respuestas, códigos y envolturas OpenAPI especificadas.
 
-- [ ] T9. Extender el dominio y la aplicación de Products para `categoryUuid`, inyectar el lector público de Categories y escribir pruebas con falsos. (RF-22 a RF-27, RF-32 a RF-34, RF-38, RF-39, RF-44 a RF-46)
+- [x] T9. Extender el dominio y la aplicación de Products para `categoryUuid`, inyectar el lector público de Categories y escribir pruebas con falsos. (RF-22 a RF-27, RF-32 a RF-34, RF-38, RF-39, RF-44 a RF-46)
       Hecho cuando: crear exige una categoría activa, actualizar valida primero una categoría proporcionada, conserva la asociación omitida y permite temporalmente `null` solo en productos heredados.
 
 - [ ] T10. Extender el repositorio Prisma de Products para la relación y asegurar la asignación frente a desactivación o eliminación concurrente; agregar pruebas de integración. (RF-22 a RF-27, RF-32 a RF-34, RF-41, RF-44 a RF-46)

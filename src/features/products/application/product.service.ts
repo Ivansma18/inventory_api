@@ -7,6 +7,8 @@ import {
   type UpdateProductData,
 } from "../domain/product.entity.js";
 import {
+  ProductCategoryInactiveError,
+  ProductCategoryNotFoundError,
   ProductNotFoundError,
   ProductSkuAlreadyExistsError,
 } from "../domain/product.errors.js";
@@ -17,6 +19,7 @@ import {
   type ProductSortField,
   type SortDirection,
 } from "../domain/product.repository.js";
+import type { CategoryReader } from "../../categories/index.js";
 
 export interface CreateProductInput {
   sku: string;
@@ -24,6 +27,7 @@ export interface CreateProductInput {
   description?: string | null;
   purchasePrice: number;
   salePrice: number;
+  categoryUuid?: string;
 }
 
 export type UpdateProductInput = UpdateProductData;
@@ -40,11 +44,13 @@ export interface ListProductsInput {
 export class ProductService {
   constructor(
     private readonly products: ProductRepository,
+    private readonly categories: CategoryReader,
     private readonly generateUuid: () => string = randomUUID,
     private readonly now: () => Date = () => new Date(),
   ) {}
 
   async createProduct(input: CreateProductInput): Promise<Product> {
+    await this.requireActiveCategory(input.categoryUuid);
     const timestamp = this.now();
     const product = createProduct({
       ...input,
@@ -93,6 +99,10 @@ export class ProductService {
     uuid: string,
     input: UpdateProductInput,
   ): Promise<Product> {
+    if (input.categoryUuid !== undefined) {
+      await this.requireActiveCategory(input.categoryUuid);
+    }
+
     const product = await this.getProduct(uuid);
     const updatedProduct = updateProduct(product, input, this.now());
 
@@ -107,5 +117,21 @@ export class ProductService {
     }
 
     return this.products.update(updatedProduct);
+  }
+
+  private async requireActiveCategory(
+    categoryUuid: string | undefined,
+  ): Promise<void> {
+    const category = categoryUuid
+      ? await this.categories.findByUuid(categoryUuid)
+      : null;
+
+    if (!category) {
+      throw new ProductCategoryNotFoundError();
+    }
+
+    if (!category.isActive) {
+      throw new ProductCategoryInactiveError();
+    }
   }
 }

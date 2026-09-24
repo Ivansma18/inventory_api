@@ -27,6 +27,7 @@ function createValidProduct() {
     description: "Electric desk",
     purchasePrice: 100.25,
     salePrice: 149.99,
+    categoryUuid: null,
     createdAt,
     updatedAt: createdAt,
   });
@@ -43,6 +44,7 @@ describe("Product", () => {
       purchasePrice: 100.25,
       salePrice: 149.99,
       isActive: true,
+      categoryUuid: null,
       createdAt,
       updatedAt: createdAt,
     });
@@ -136,5 +138,17 @@ describe("Product", () => {
       updatedAt,
     });
     expect(withoutDescription).toMatchObject({ description: null, updatedAt });
+  });
+
+  it("preserves an omitted category and assigns a provided category UUID", () => {
+    const product = createValidProduct();
+    const categoryUuid = "550e8400-e29b-41d4-a716-446655440000";
+
+    expect(
+      updateProduct(product, { name: "Updated desk" }, createdAt),
+    ).toMatchObject({ categoryUuid: null });
+    expect(updateProduct(product, { categoryUuid }, createdAt)).toMatchObject({
+      categoryUuid,
+    });
   });
 });

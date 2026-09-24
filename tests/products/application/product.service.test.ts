@@ -6,6 +6,8 @@ import {
   type Product,
 } from "../../../src/features/products/domain/product.entity.js";
 import {
+  ProductCategoryInactiveError,
+  ProductCategoryNotFoundError,
   ProductNotFoundError,
   ProductSkuAlreadyExistsError,
 } from "../../../src/features/products/domain/product.errors.js";
@@ -14,6 +16,7 @@ import type {
   ProductRepository,
 } from "../../../src/features/products/domain/product.repository.js";
 import { ProductService } from "../../../src/features/products/application/product.service.js";
+import type { CategoryReader } from "../../../src/features/categories/index.js";
 
 class FakeProductRepository implements ProductRepository {
   private readonly products = new Map<string, Product>();
@@ -69,11 +72,24 @@ function createStoredProduct(overrides: Partial<Product> = {}): Product {
   };
 }
 
-function createService(products: Product[] = []) {
+function createService(
+  products: Product[] = [],
+  categories: Record<string, boolean> = {
+    "550e8400-e29b-41d4-a716-446655440000": true,
+  },
+) {
   const repository = new FakeProductRepository(products);
+  const categoryReader: CategoryReader = {
+    findByUuid: async (uuid) => {
+      const isActive = categories[uuid];
+
+      return isActive === undefined ? null : { uuid, isActive };
+    },
+  };
   const timestamp = new Date("2026-09-23T11:00:00.000Z");
   const service = new ProductService(
     repository,
+    categoryReader,
     () => "e3b0c442-98fc-4c14-9afb-0d8ac4e6f4b1",
     () => timestamp,
   );
@@ -90,6 +106,7 @@ describe("ProductService", () => {
       name: "  Adjustable desk  ",
       purchasePrice: 120,
       salePrice: 180,
+      categoryUuid: "550e8400-e29b-41d4-a716-446655440000",
     });
 
     expect(product).toEqual({
@@ -101,6 +118,7 @@ describe("ProductService", () => {
       purchasePrice: 120,
       salePrice: 180,
       isActive: true,
+      categoryUuid: "550e8400-e29b-41d4-a716-446655440000",
       createdAt: timestamp,
       updatedAt: timestamp,
     });
@@ -120,6 +138,7 @@ describe("ProductService", () => {
         name: "Another desk",
         purchasePrice: 90,
         salePrice: 140,
+        categoryUuid: "550e8400-e29b-41d4-a716-446655440000",
       }),
     ).rejects.toThrow(ProductSkuAlreadyExistsError);
   });
@@ -199,5 +218,65 @@ describe("ProductService", () => {
     await expect(
       service.updateProduct(storedProduct.uuid, { isActive: true }),
     ).resolves.toMatchObject({ isActive: true });
+  });
+
+  it("rejects new and assigned categories that do not exist or are inactive", async () => {
+    const storedProduct = createStoredProduct();
+    const unknownCategoryUuid = "550e8400-e29b-41d4-a716-446655440001";
+    const inactiveCategoryUuid = "550e8400-e29b-41d4-a716-446655440002";
+    const { service } = createService([storedProduct], {
+      [inactiveCategoryUuid]: false,
+    });
+
+    await expect(
+      service.createProduct({
+        sku: "SKU-003",
+        name: "Lamp",
+        purchasePrice: 20,
+        salePrice: 35,
+      }),
+    ).rejects.toThrow(ProductCategoryNotFoundError);
+    await expect(
+      service.createProduct({
+        sku: "SKU-002",
+        name: "Chair",
+        purchasePrice: 50,
+        salePrice: 75,
+        categoryUuid: unknownCategoryUuid,
+      }),
+    ).rejects.toThrow(ProductCategoryNotFoundError);
+    await expect(
+      service.updateProduct(storedProduct.uuid, {
+        categoryUuid: inactiveCategoryUuid,
+      }),
+    ).rejects.toThrow(ProductCategoryInactiveError);
+  });
+
+  it("validates a supplied category before looking up the product", async () => {
+    const unknownCategoryUuid = "550e8400-e29b-41d4-a716-446655440001";
+    const { service } = createService([], {});
+
+    await expect(
+      service.updateProduct("unknown-product", {
+        categoryUuid: unknownCategoryUuid,
+      }),
+    ).rejects.toThrow(ProductCategoryNotFoundError);
+  });
+
+  it("preserves categories omitted from updates, including legacy null values", async () => {
+    const categoryUuid = "550e8400-e29b-41d4-a716-446655440000";
+    const categorizedProduct = createStoredProduct({ categoryUuid });
+    const legacyProduct = createStoredProduct({
+      uuid: "6f7d1c9e-98fc-4c14-9afb-0d8ac4e6f4b1",
+      categoryUuid: null,
+    });
+    const { service } = createService([categorizedProduct, legacyProduct]);
+
+    await expect(
+      service.updateProduct(categorizedProduct.uuid, { name: "Updated desk" }),
+    ).resolves.toMatchObject({ categoryUuid });
+    await expect(
+      service.updateProduct(legacyProduct.uuid, { name: "Legacy desk" }),
+    ).resolves.toMatchObject({ categoryUuid: null });
   });
 });
