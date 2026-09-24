@@ -21,7 +21,7 @@
 - [x] T7. Definir schemas Zod/OpenAPI y mappers HTTP de Categories para cuerpos, UUID, query, respuestas y propiedades adicionales; cubrirlos con pruebas. (RF-1, RF-2, RF-4, RF-6, RF-13 a RF-20, RF-29, RF-30, RF-35, RF-36, RF-40)
       Hecho cuando: los schemas validan entradas y query, descartan campos no reconocidos, rechazan actualizaciones vacías y documentan respuestas y errores aplicables.
 
-- [ ] T8. Implementar las rutas HTTP de Categories, traducir errores de negocio y probar los cinco contratos con `app.request`. (RF-1 a RF-21, RF-28 a RF-31, RF-35 a RF-37, RF-40)
+- [x] T8. Implementar las rutas HTTP de Categories, traducir errores de negocio y probar los cinco contratos con `app.request`. (RF-1 a RF-21, RF-28 a RF-31, RF-35 a RF-37, RF-40)
       Hecho cuando: `POST`, ambos `GET`, `PATCH` y `DELETE /categories` devuelven las respuestas, códigos y envolturas OpenAPI especificadas.
 
 - [ ] T9. Extender el dominio y la aplicación de Products para `categoryUuid`, inyectar el lector público de Categories y escribir pruebas con falsos. (RF-22 a RF-27, RF-32 a RF-34, RF-38, RF-39, RF-44 a RF-46)
