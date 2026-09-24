@@ -20,6 +20,7 @@ describe("Product HTTP schemas", () => {
       description: "Electric",
       purchasePrice: 100.25,
       salePrice: 150.5,
+      categoryUuid: "550e8400-e29b-41d4-a716-446655440001",
       ignored: "value",
     });
 
@@ -29,10 +30,11 @@ describe("Product HTTP schemas", () => {
       description: "Electric",
       purchasePrice: 100.25,
       salePrice: 150.5,
+      categoryUuid: "550e8400-e29b-41d4-a716-446655440001",
     });
   });
 
-  it("rejects missing or invalid product fields", () => {
+  it("rejects missing, null, or invalid product fields", () => {
     expect(() =>
       createProductSchema.parse({
         sku: "   ",
@@ -47,6 +49,7 @@ describe("Product HTTP schemas", () => {
         name: "Desk",
         purchasePrice: -1,
         salePrice: 20,
+        categoryUuid: "550e8400-e29b-41d4-a716-446655440001",
       }),
     ).toThrow();
     expect(() =>
@@ -55,6 +58,24 @@ describe("Product HTTP schemas", () => {
         name: "Desk",
         purchasePrice: 10.001,
         salePrice: 20,
+        categoryUuid: "550e8400-e29b-41d4-a716-446655440001",
+      }),
+    ).toThrow();
+    expect(() =>
+      createProductSchema.parse({
+        sku: "DESK-001",
+        name: "Desk",
+        purchasePrice: 10,
+        salePrice: 20,
+      }),
+    ).toThrow();
+    expect(() =>
+      createProductSchema.parse({
+        sku: "DESK-001",
+        name: "Desk",
+        purchasePrice: 10,
+        salePrice: 20,
+        categoryUuid: null,
       }),
     ).toThrow();
   });
@@ -64,6 +85,7 @@ describe("Product HTTP schemas", () => {
       updateProductSchema.parse({ description: null, ignored: "value" }),
     ).toEqual({ description: null });
     expect(() => updateProductSchema.parse({ ignored: "value" })).toThrow();
+    expect(() => updateProductSchema.parse({ categoryUuid: null })).toThrow();
   });
 
   it("validates UUID params and coerces valid list query parameters", () => {
@@ -116,6 +138,7 @@ describe("Product HTTP mappers", () => {
       description: null,
       purchasePrice: 100.25,
       salePrice: 150.5,
+      categoryUuid: "550e8400-e29b-41d4-a716-446655440001",
       createdAt: new Date("2026-09-23T10:00:00.000Z"),
       updatedAt: new Date("2026-09-23T11:00:00.000Z"),
     });
@@ -127,6 +150,7 @@ describe("Product HTTP mappers", () => {
       description: null,
       purchasePrice: product.purchasePrice,
       salePrice: product.salePrice,
+      categoryUuid: "550e8400-e29b-41d4-a716-446655440001",
       isActive: true,
       createdAt: "2026-09-23T10:00:00.000Z",
       updatedAt: "2026-09-23T11:00:00.000Z",

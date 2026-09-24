@@ -11,16 +11,24 @@ describe("GET /health", () => {
   });
 
   it("publishes the OpenAPI document and Swagger UI", async () => {
-    const [openApiResponse, docsResponse, productsResponse] = await Promise.all(
-      [
-        app.request("/openapi.json"),
-        app.request("/docs"),
-        app.request("/products"),
-      ],
-    );
+    const [
+      openApiResponse,
+      docsResponse,
+      productsResponse,
+      categoriesResponse,
+      missingProductResponse,
+    ] = await Promise.all([
+      app.request("/openapi.json"),
+      app.request("/docs"),
+      app.request("/products"),
+      app.request("/categories"),
+      app.request("/products/550e8400-e29b-41d4-a716-446655440099"),
+    ]);
 
     expect(openApiResponse.status).toBe(200);
-    await expect(openApiResponse.json()).resolves.toMatchObject({
+    const openApiDocument = await openApiResponse.json();
+
+    expect(openApiDocument).toMatchObject({
       paths: {
         "/health": expect.anything(),
         "/products": {
@@ -31,11 +39,42 @@ describe("GET /health", () => {
           get: expect.anything(),
           patch: expect.anything(),
         },
+        "/categories": {
+          get: expect.anything(),
+          post: expect.anything(),
+        },
+        "/categories/{uuid}": {
+          get: expect.anything(),
+          patch: expect.anything(),
+          delete: expect.anything(),
+        },
+      },
+    });
+    expect(openApiDocument.components.schemas.CreateProduct).toMatchObject({
+      required: expect.arrayContaining(["categoryUuid"]),
+      properties: {
+        categoryUuid: { type: "string", format: "uuid" },
+      },
+    });
+    expect(openApiDocument.components.schemas.UpdateProduct).toMatchObject({
+      properties: {
+        categoryUuid: { type: "string", format: "uuid" },
+      },
+    });
+    expect(openApiDocument.components.schemas.Product).toMatchObject({
+      properties: {
+        categoryUuid: { type: "string", format: "uuid", nullable: true },
       },
     });
     expect(docsResponse.status).toBe(200);
     expect(productsResponse.status).toBe(200);
+    expect(categoriesResponse.status).toBe(200);
+    expect(missingProductResponse.status).toBe(404);
     await expect(productsResponse.json()).resolves.toMatchObject({
+      data: expect.any(Array),
+      pagination: { page: 1, limit: 15 },
+    });
+    await expect(categoriesResponse.json()).resolves.toMatchObject({
       data: expect.any(Array),
       pagination: { page: 1, limit: 15 },
     });

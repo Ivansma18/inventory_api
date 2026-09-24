@@ -23,6 +23,9 @@ export const createProductSchema = z
     }),
     purchasePrice: priceSchema,
     salePrice: priceSchema,
+    categoryUuid: z.string().uuid().openapi({
+      example: "550e8400-e29b-41d4-a716-446655440000",
+    }),
   })
   .strip()
   .openapi("CreateProduct");
@@ -38,6 +41,11 @@ export const updateProductSchema = z
     }),
     purchasePrice: priceSchema.optional(),
     salePrice: priceSchema.optional(),
+    categoryUuid: z
+      .string()
+      .uuid()
+      .optional()
+      .openapi({ example: "550e8400-e29b-41d4-a716-446655440000" }),
     isActive: z.boolean().optional().openapi({ example: true }),
   })
   .strip()
@@ -89,6 +97,7 @@ export const productResponseSchema = z
     description: z.string().nullable(),
     purchasePrice: z.number(),
     salePrice: z.number(),
+    categoryUuid: z.string().uuid().nullable(),
     isActive: z.boolean(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),

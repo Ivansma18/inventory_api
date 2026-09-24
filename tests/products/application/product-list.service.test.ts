@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ProductService } from "../../../src/features/products/application/product.service.js";
+import type { CategoryReader } from "../../../src/features/categories/index.js";
 import {
   createProduct,
   type Product,
@@ -59,7 +60,13 @@ function createService(total = 1) {
     total,
   });
 
-  return { product, repository, service: new ProductService(repository) };
+  const categoryReader: CategoryReader = { findByUuid: async () => null };
+
+  return {
+    product,
+    repository,
+    service: new ProductService(repository, categoryReader),
+  };
 }
 
 describe("ProductService.listProducts", () => {

@@ -8,6 +8,7 @@ export interface ProductResponse {
   description: string | null;
   purchasePrice: number;
   salePrice: number;
+  categoryUuid: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -30,6 +31,7 @@ export function toProductResponse(product: Product): ProductResponse {
     description: product.description,
     purchasePrice: product.purchasePrice,
     salePrice: product.salePrice,
+    categoryUuid: product.categoryUuid,
     isActive: product.isActive,
     createdAt: product.createdAt.toISOString(),
     updatedAt: product.updatedAt.toISOString(),

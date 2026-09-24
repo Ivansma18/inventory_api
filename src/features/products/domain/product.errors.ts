@@ -34,3 +34,24 @@ export class ProductSkuAlreadyExistsError extends Error {
     this.name = "ProductSkuAlreadyExistsError";
   }
 }
+
+export class ProductCategoryNotFoundError extends Error {
+  constructor() {
+    super("Product category was not found.");
+    this.name = "ProductCategoryNotFoundError";
+  }
+}
+
+export class ProductCategoryInactiveError extends Error {
+  constructor() {
+    super("Product category is inactive.");
+    this.name = "ProductCategoryInactiveError";
+  }
+}
+
+export class ProductCategoryAssignmentConflictError extends Error {
+  constructor() {
+    super("Product category assignment could not be completed.");
+    this.name = "ProductCategoryAssignmentConflictError";
+  }
+}

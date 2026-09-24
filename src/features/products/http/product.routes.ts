@@ -8,6 +8,9 @@ import type {
 import type { Product } from "../domain/product.entity.js";
 import type { ProductListResult } from "../domain/product.repository.js";
 import {
+  ProductCategoryAssignmentConflictError,
+  ProductCategoryInactiveError,
+  ProductCategoryNotFoundError,
   InvalidProductNameError,
   InvalidProductPriceError,
   InvalidProductSkuError,
@@ -60,7 +63,12 @@ const createProductRoute = createRoute({
     },
     409: {
       content: { "application/json": { schema: errorResponseSchema } },
-      description: "Product SKU already exists",
+      description:
+        "Product SKU already exists or category assignment conflicts",
+    },
+    404: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "Product category not found",
     },
   },
 });
@@ -131,7 +139,8 @@ const updateProductRoute = createRoute({
     },
     409: {
       content: { "application/json": { schema: errorResponseSchema } },
-      description: "Product SKU already exists",
+      description:
+        "Product SKU already exists or category assignment conflicts",
     },
   },
 });
@@ -199,6 +208,36 @@ export function createProductRoutes({
         {
           error: {
             code: "PRODUCT_SKU_ALREADY_EXISTS",
+            message: error.message,
+          },
+        },
+        409,
+      );
+    }
+
+    if (error instanceof ProductCategoryNotFoundError) {
+      return context.json(
+        {
+          error: {
+            code: "PRODUCT_CATEGORY_NOT_FOUND",
+            message: error.message,
+          },
+        },
+        404,
+      );
+    }
+
+    if (
+      error instanceof ProductCategoryInactiveError ||
+      error instanceof ProductCategoryAssignmentConflictError
+    ) {
+      return context.json(
+        {
+          error: {
+            code:
+              error instanceof ProductCategoryInactiveError
+                ? "PRODUCT_CATEGORY_INACTIVE"
+                : "PRODUCT_CATEGORY_ASSIGNMENT_CONFLICT",
             message: error.message,
           },
         },
