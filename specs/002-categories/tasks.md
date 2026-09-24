@@ -33,7 +33,7 @@
 - [x] T11. Extender schemas, mapper, rutas y OpenAPI de Products para `categoryUuid`; cubrir contratos HTTP y prioridad de errores. (RF-22 a RF-29, RF-32, RF-34, RF-38, RF-39, RF-41, RF-44 a RF-46)
       Hecho cuando: creación, consulta, listado y actualización publican `categoryUuid`, validan su presencia o nulidad y documentan `400`, `404` y `409` por categoría.
 
-- [ ] T12. Componer la API pública de Categories, inyectar su lector en Products, registrar `/categories` en `app.ts` y ampliar las pruebas de OpenAPI y regresión. (RF-22 a RF-27, RF-34, RF-37, RF-41)
+- [x] T12. Componer la API pública de Categories, inyectar su lector en Products, registrar `/categories` en `app.ts` y ampliar las pruebas de OpenAPI y regresión. (RF-22 a RF-27, RF-34, RF-37, RF-41)
       Hecho cuando: no hay importaciones cruzadas de infraestructura, `/openapi.json` publica los nueve endpoints de Products y Categories y salud, Swagger y manejo global de errores continúan funcionando.
 
 - [ ] T13. Tras completar la clasificación temporal, crear y verificar la segunda migración que exige categoría obligatoria en Products. (RF-42, RF-43)
