@@ -18,7 +18,7 @@
 - [x] T6. Implementar InventoryService con casos de uso de detalle, listado y actualización de stock mínimo, junto con fakes y pruebas de aplicación. (RF-9, RF-11, RF-16, RF-17, RF-24, RF-25, RF-33)
       Hecho cuando: las pruebas de aplicación verifican producto inexistente, valores predeterminados, búsqueda normalizada, mínimo idempotente y producto inactivo.
 
-- [ ] T7. Implementar PrismaInventoryRepository para detalle y actualización de mínimo, con mapeo a dominio y pruebas de integración. (RF-3, RF-9, RF-11, RF-24, RF-25, RF-33)
+- [x] T7. Implementar PrismaInventoryRepository para detalle y actualización de mínimo, con mapeo a dominio y pruebas de integración. (RF-3, RF-9, RF-11, RF-24, RF-25, RF-33)
       Hecho cuando: el repositorio devuelve el resumen de producto requerido, actualiza solo el mínimo y admite productos inactivos.
 
 - [ ] T8. Implementar el listado Prisma de Inventory con filtros relacionales, estados calculados, total previo a paginación y orden estable; añadir sus pruebas de integración. (RF-12, RF-14, RF-16, RF-20, RF-22, RF-23)
