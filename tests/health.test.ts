@@ -20,7 +20,9 @@ describe("GET /health", () => {
     );
 
     expect(openApiResponse.status).toBe(200);
-    await expect(openApiResponse.json()).resolves.toMatchObject({
+    const openApiDocument = await openApiResponse.json();
+
+    expect(openApiDocument).toMatchObject({
       paths: {
         "/health": expect.anything(),
         "/products": {
@@ -31,6 +33,22 @@ describe("GET /health", () => {
           get: expect.anything(),
           patch: expect.anything(),
         },
+      },
+    });
+    expect(openApiDocument.components.schemas.CreateProduct).toMatchObject({
+      required: expect.arrayContaining(["categoryUuid"]),
+      properties: {
+        categoryUuid: { type: "string", format: "uuid" },
+      },
+    });
+    expect(openApiDocument.components.schemas.UpdateProduct).toMatchObject({
+      properties: {
+        categoryUuid: { type: "string", format: "uuid" },
+      },
+    });
+    expect(openApiDocument.components.schemas.Product).toMatchObject({
+      properties: {
+        categoryUuid: { type: "string", format: "uuid", nullable: true },
       },
     });
     expect(docsResponse.status).toBe(200);

@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import { createProduct } from "../../../src/features/products/domain/product.entity.js";
 import {
+  ProductCategoryAssignmentConflictError,
+  ProductCategoryInactiveError,
+  ProductCategoryNotFoundError,
   ProductNotFoundError,
   ProductSkuAlreadyExistsError,
 } from "../../../src/features/products/domain/product.errors.js";
@@ -17,6 +20,7 @@ const product = createProduct({
   description: "Electric",
   purchasePrice: 100.25,
   salePrice: 150.5,
+  categoryUuid: "550e8400-e29b-41d4-a716-446655440001",
   createdAt: new Date("2026-09-23T10:00:00.000Z"),
   updatedAt: new Date("2026-09-23T10:00:00.000Z"),
 });
@@ -53,6 +57,7 @@ describe("Product routes", () => {
         name: "  Standing desk  ",
         purchasePrice: 100.25,
         salePrice: 150.5,
+        categoryUuid: "550e8400-e29b-41d4-a716-446655440001",
         ignored: "value",
       }),
     });
@@ -66,6 +71,7 @@ describe("Product routes", () => {
         description: product.description,
         purchasePrice: product.purchasePrice,
         salePrice: product.salePrice,
+        categoryUuid: product.categoryUuid,
         isActive: product.isActive,
         createdAt: "2026-09-23T10:00:00.000Z",
         updatedAt: "2026-09-23T10:00:00.000Z",
@@ -76,6 +82,7 @@ describe("Product routes", () => {
       name: "Standing desk",
       purchasePrice: 100.25,
       salePrice: 150.5,
+      categoryUuid: product.categoryUuid,
     });
   });
 
@@ -98,6 +105,33 @@ describe("Product routes", () => {
 
     expect(invalidProduct.status).toBe(400);
     expect(invalidUuid.status).toBe(400);
+
+    const [missingCategory, nullCategory] = await Promise.all([
+      app.request("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sku: "DESK-001",
+          name: "Desk",
+          purchasePrice: 100,
+          salePrice: 150,
+        }),
+      }),
+      app.request("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sku: "DESK-001",
+          name: "Desk",
+          purchasePrice: 100,
+          salePrice: 150,
+          categoryUuid: null,
+        }),
+      }),
+    ]);
+
+    expect(missingCategory.status).toBe(400);
+    expect(nullCategory.status).toBe(400);
   });
 
   it("gets a product and translates not-found errors", async () => {
@@ -155,6 +189,7 @@ describe("Product routes", () => {
       body: JSON.stringify({
         description: null,
         isActive: false,
+        categoryUuid: "550e8400-e29b-41d4-a716-446655440002",
         ignored: true,
       }),
     });
@@ -169,7 +204,11 @@ describe("Product routes", () => {
       data: { description: null, isActive: false },
     });
     expect(receivedUuid).toBe(product.uuid);
-    expect(receivedInput).toEqual({ description: null, isActive: false });
+    expect(receivedInput).toEqual({
+      description: null,
+      isActive: false,
+      categoryUuid: "550e8400-e29b-41d4-a716-446655440002",
+    });
     expect(conflict.status).toBe(409);
     await expect(conflict.json()).resolves.toEqual({
       error: {
@@ -177,6 +216,81 @@ describe("Product routes", () => {
         message: "Product SKU already exists.",
       },
     });
+  });
+
+  it("translates category errors before product lookup errors", async () => {
+    const categoryNotFoundApp = createProductRoutes({
+      service: createService({
+        updateProduct: async () => {
+          throw new ProductCategoryNotFoundError();
+        },
+      }),
+    });
+    const inactiveCategoryApp = createProductRoutes({
+      service: createService({
+        createProduct: async () => {
+          throw new ProductCategoryInactiveError();
+        },
+      }),
+    });
+    const assignmentConflictApp = createProductRoutes({
+      service: createService({
+        updateProduct: async () => {
+          throw new ProductCategoryAssignmentConflictError();
+        },
+      }),
+    });
+
+    const [notFound, inactive, assignmentConflict, nullCategory] =
+      await Promise.all([
+        categoryNotFoundApp.request("/550e8400-e29b-41d4-a716-446655440003", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            categoryUuid: "550e8400-e29b-41d4-a716-446655440002",
+          }),
+        }),
+        inactiveCategoryApp.request("/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sku: "DESK-002",
+            name: "Desk",
+            purchasePrice: 100,
+            salePrice: 150,
+            categoryUuid: "550e8400-e29b-41d4-a716-446655440002",
+          }),
+        }),
+        assignmentConflictApp.request(`/${product.uuid}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            categoryUuid: "550e8400-e29b-41d4-a716-446655440002",
+          }),
+        }),
+        categoryNotFoundApp.request(`/${product.uuid}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ categoryUuid: null }),
+        }),
+      ]);
+
+    expect(notFound.status).toBe(404);
+    await expect(notFound.json()).resolves.toEqual({
+      error: {
+        code: "PRODUCT_CATEGORY_NOT_FOUND",
+        message: "Product category was not found.",
+      },
+    });
+    expect(inactive.status).toBe(409);
+    await expect(inactive.json()).resolves.toEqual({
+      error: {
+        code: "PRODUCT_CATEGORY_INACTIVE",
+        message: "Product category is inactive.",
+      },
+    });
+    expect(assignmentConflict.status).toBe(409);
+    expect(nullCategory.status).toBe(400);
   });
 
   it("returns 400 when an update has no recognized fields", async () => {

@@ -30,7 +30,7 @@
 - [x] T10. Extender el repositorio Prisma de Products para la relación y asegurar la asignación frente a desactivación o eliminación concurrente; agregar pruebas de integración. (RF-22 a RF-27, RF-32 a RF-34, RF-41, RF-44 a RF-46)
       Hecho cuando: persistencia y mapeo conservan `categoryUuid`, las asociaciones inválidas se rechazan y una asociación que pierde una carrera de concurrencia se traduce en conflicto.
 
-- [ ] T11. Extender schemas, mapper, rutas y OpenAPI de Products para `categoryUuid`; cubrir contratos HTTP y prioridad de errores. (RF-22 a RF-29, RF-32, RF-34, RF-38, RF-39, RF-41, RF-44 a RF-46)
+- [x] T11. Extender schemas, mapper, rutas y OpenAPI de Products para `categoryUuid`; cubrir contratos HTTP y prioridad de errores. (RF-22 a RF-29, RF-32, RF-34, RF-38, RF-39, RF-41, RF-44 a RF-46)
       Hecho cuando: creación, consulta, listado y actualización publican `categoryUuid`, validan su presencia o nulidad y documentan `400`, `404` y `409` por categoría.
 
 - [ ] T12. Componer la API pública de Categories, inyectar su lector en Products, registrar `/categories` en `app.ts` y ampliar las pruebas de OpenAPI y regresión. (RF-22 a RF-27, RF-34, RF-37, RF-41)
