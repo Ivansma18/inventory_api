@@ -1,6 +1,6 @@
 # Tareas - Spec 005 Authentication
 
-- [ ] T1. Añadir los modelos Prisma requeridos por Better Auth y su migración PostgreSQL, incluyendo usuario, sesión, cuenta, verificación, unicidad de email/token y relaciones. (RF-1, RF-5, RF-7, RF-12, RF-14, RF-24)
+- [x] T1. Añadir los modelos Prisma requeridos por Better Auth y su migración PostgreSQL, incluyendo usuario, sesión, cuenta, verificación, unicidad de email/token y relaciones. (RF-1, RF-5, RF-7, RF-12, RF-14, RF-24)
       Hecho cuando: el schema Prisma y la migración crean las entidades de autenticación sin modificar Product, Inventory ni StockMovement, y las pruebas verifican unicidad, relaciones y ausencia de contraseñas en texto plano.
 
 - [ ] T2. Configurar la instancia de Better Auth con adaptador Prisma, email/contraseña, normalización de email, ausencia de verificación de email, cookie de sesión y política de sesión indefinida. (RF-3, RF-4, RF-14, RF-15, RF-24)
