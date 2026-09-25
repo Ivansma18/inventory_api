@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { StockMovementProductNotFoundError } from "../../../src/features/stock-movements/domain/stock-movement.errors.js";
 import type { StockMovementListQuery } from "../../../src/features/stock-movements/domain/stock-movement.repository.js";
 import { PrismaStockMovementRepository } from "../../../src/features/stock-movements/infrastructure/prisma-stock-movement.repository.js";
 import { prisma } from "../../../src/shared/database/prisma.js";
@@ -86,6 +87,12 @@ function listQuery(
 }
 
 describe("PrismaStockMovementRepository.findMany", () => {
+  it("rejects a valid product UUID that does not exist", async () => {
+    await expect(
+      repository.findMany(listQuery({ productUuid: randomUUID() })),
+    ).rejects.toThrow(StockMovementProductNotFoundError);
+  });
+
   it("filters globally by type, product and a case-insensitive non-null reference", async () => {
     const firstProduct = await createProduct();
     const secondProduct = await createProduct();

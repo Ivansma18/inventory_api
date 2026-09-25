@@ -33,7 +33,7 @@
 - [x] T11. Implementar el mapper y las rutas HTTP de creacion de movimientos, con traduccion de errores y pruebas de rutas. (RF-9, RF-20 a RF-22, RF-30 a RF-32, RF-36 a RF-38, RF-42 a RF-44, RF-46, RF-47, RF-49 a RF-56)
       Hecho cuando: las tres rutas devuelven `201 { data }`, exponen todos los campos publicos, mapean insuficiencia a `409`, producto inexistente a `404` y validaciones a `400`.
 
-- [ ] T12. Implementar las rutas HTTP de listado por producto y global, con mapeo de paginacion y pruebas de rutas. (RF-23 a RF-31, RF-34 a RF-36, RF-39, RF-41, RF-45)
+- [x] T12. Implementar las rutas HTTP de listado por producto y global, con mapeo de paginacion y pruebas de rutas. (RF-23 a RF-31, RF-34 a RF-36, RF-39, RF-41, RF-45)
       Hecho cuando: ambos listados devuelven `data` y `pagination`, validan filtros y reflejan correctamente el total, orden y filtros delegados al servicio.
 
 - [ ] T13. Componer la feature Stock Movements, registrar las cinco rutas en `app.ts` y verificar OpenAPI y Swagger. (RF-19 a RF-24, RF-46)

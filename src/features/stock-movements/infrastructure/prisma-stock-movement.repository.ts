@@ -70,6 +70,17 @@ export class PrismaStockMovementRepository implements StockMovementRepository {
   async findMany(
     query: StockMovementListQuery,
   ): Promise<StockMovementListResult> {
+    if (query.productUuid) {
+      const product = await this.prisma.product.findUnique({
+        where: { uuid: query.productUuid },
+        select: { id: true },
+      });
+
+      if (!product) {
+        throw new StockMovementProductNotFoundError();
+      }
+    }
+
     const where = toStockMovementWhere(query);
     const [movements, total] = await this.prisma.$transaction([
       this.prisma.stockMovement.findMany({

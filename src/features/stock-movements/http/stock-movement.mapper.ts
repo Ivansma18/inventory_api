@@ -1,4 +1,5 @@
 import type { StockMovement } from "../domain/stock-movement.entity.js";
+import type { StockMovementListResult } from "../domain/stock-movement.repository.js";
 
 export interface StockMovementResponse {
   uuid: string;
@@ -10,6 +11,15 @@ export interface StockMovementResponse {
   reason: string | null;
   reference: string | null;
   createdAt: string;
+}
+
+export interface StockMovementListResponse {
+  data: StockMovementResponse[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+  };
 }
 
 export function toStockMovementResponse(
@@ -25,5 +35,16 @@ export function toStockMovementResponse(
     reason: movement.reason,
     reference: movement.reference,
     createdAt: movement.createdAt.toISOString(),
+  };
+}
+
+export function toStockMovementListResponse(
+  result: StockMovementListResult,
+  page: number,
+  limit: number,
+): StockMovementListResponse {
+  return {
+    data: result.movements.map(toStockMovementResponse),
+    pagination: { total: result.total, page, limit },
   };
 }
