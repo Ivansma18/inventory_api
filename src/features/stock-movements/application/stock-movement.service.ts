@@ -1,5 +1,12 @@
-import type { StockMovement } from "../domain/stock-movement.entity.js";
-import type { StockMovementRepository } from "../domain/stock-movement.repository.js";
+import type {
+  StockMovement,
+  StockMovementType,
+} from "../domain/stock-movement.entity.js";
+import {
+  stockMovementListTieBreakers,
+  type StockMovementListResult,
+  type StockMovementRepository,
+} from "../domain/stock-movement.repository.js";
 
 export interface CreateStockEntryInput {
   quantity: number;
@@ -15,6 +22,19 @@ export interface AdjustStockInput {
   quantity: number;
   reason: string;
   reference?: string | null;
+}
+
+export interface StockMovementListInput {
+  page?: number;
+  limit?: number;
+  type?: StockMovementType;
+  from?: Date;
+  to?: Date;
+  reference?: string;
+}
+
+export interface GlobalStockMovementListInput extends StockMovementListInput {
+  productUuid?: string;
 }
 
 export class StockMovementService {
@@ -54,6 +74,38 @@ export class StockMovementService {
       quantity: input.quantity,
       reason: input.reason.trim(),
       reference: normalizeReference(input.reference),
+    });
+  }
+
+  async listProductStockMovements(
+    productUuid: string,
+    input: StockMovementListInput = {},
+  ): Promise<StockMovementListResult> {
+    return this.findMovements({ ...input, productUuid });
+  }
+
+  async listStockMovements(
+    input: GlobalStockMovementListInput = {},
+  ): Promise<StockMovementListResult> {
+    return this.findMovements(input);
+  }
+
+  private findMovements(
+    input: GlobalStockMovementListInput,
+  ): Promise<StockMovementListResult> {
+    const reference = normalizeReference(input.reference);
+
+    return this.stockMovements.findMany({
+      page: input.page ?? 1,
+      limit: input.limit ?? 15,
+      ...(input.type ? { type: input.type } : {}),
+      ...(input.from ? { from: input.from } : {}),
+      ...(input.to ? { to: input.to } : {}),
+      ...(input.productUuid ? { productUuid: input.productUuid } : {}),
+      ...(reference ? { reference } : {}),
+      sort: "createdAt",
+      order: "desc",
+      tieBreakers: stockMovementListTieBreakers,
     });
   }
 }

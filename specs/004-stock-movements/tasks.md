@@ -15,7 +15,7 @@
 - [x] T5. Implementar los casos de uso de entrada, salida y ajuste con fakes y pruebas de aplicacion para normalizacion de motivo y referencia. (RF-1 a RF-16, RF-37, RF-38, RF-40, RF-44, RF-48, RF-51, RF-52)
       Hecho cuando: las pruebas verifican intenciones correctas, producto inactivo permitido, referencias nulas o vacias normalizadas, motivo de ajuste recortado y solicitudes repetidas independientes.
 
-- [ ] T6. Implementar los casos de uso de listado por producto y global, con valores predeterminados, filtros y normalizacion de referencia. (RF-23 a RF-29, RF-34, RF-35, RF-39, RF-41, RF-45)
+- [x] T6. Implementar los casos de uso de listado por producto y global, con valores predeterminados, filtros y normalizacion de referencia. (RF-23 a RF-29, RF-34, RF-35, RF-39, RF-41, RF-45)
       Hecho cuando: las pruebas de aplicacion verifican `page=1`, `limit=15`, limite maximo, filtros combinados y omision de referencia vacia.
 
 - [ ] T7. Implementar `PrismaStockMovementRepository` para crear entrada, salida y ajuste en una transaccion atomica, y cubrirlo con pruebas de integracion. (RF-1 a RF-16, RF-38, RF-42, RF-43, RF-48)

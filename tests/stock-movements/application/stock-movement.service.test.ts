@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { StockMovementService } from "../../../src/features/stock-movements/application/stock-movement.service.js";
 import type { StockMovement } from "../../../src/features/stock-movements/domain/stock-movement.entity.js";
 import type {
+  StockMovementListQuery,
   StockMovementListResult,
   StockMovementRepository,
   StockMovementWriteIntent,
@@ -12,6 +13,7 @@ const productUuid = "550e8400-e29b-41d4-a716-446655440000";
 
 class FakeStockMovementRepository implements StockMovementRepository {
   readonly registeredIntents: StockMovementWriteIntent[] = [];
+  lastListQuery: StockMovementListQuery | undefined;
 
   async registerAtomically(
     intent: StockMovementWriteIntent,
@@ -31,8 +33,12 @@ class FakeStockMovementRepository implements StockMovementRepository {
     };
   }
 
-  async findMany(): Promise<StockMovementListResult> {
-    throw new Error("Listing is not part of this fake repository yet.");
+  async findMany(
+    query: StockMovementListQuery,
+  ): Promise<StockMovementListResult> {
+    this.lastListQuery = query;
+
+    return { movements: [], total: 0 };
   }
 }
 
@@ -138,5 +144,58 @@ describe("StockMovementService", () => {
       },
     ]);
     expect(first.uuid).not.toEqual(second.uuid);
+  });
+
+  it("uses defaults and product scope for product movement listings", async () => {
+    const { repository, service } = createService();
+
+    await expect(
+      service.listProductStockMovements(productUuid),
+    ).resolves.toEqual({ movements: [], total: 0 });
+    expect(repository.lastListQuery).toEqual({
+      page: 1,
+      limit: 15,
+      productUuid,
+      sort: "createdAt",
+      order: "desc",
+      tieBreakers: [{ sort: "uuid", order: "asc" }],
+    });
+  });
+
+  it("passes global filters and the supported maximum limit to the repository", async () => {
+    const { repository, service } = createService();
+    const from = new Date("2026-09-01T00:00:00.000Z");
+    const to = new Date("2026-09-30T23:59:59.999Z");
+
+    await service.listStockMovements({
+      page: 2,
+      limit: 100,
+      type: "ADJUSTMENT",
+      from,
+      to,
+      productUuid,
+      reference: "  count-001  ",
+    });
+
+    expect(repository.lastListQuery).toEqual({
+      page: 2,
+      limit: 100,
+      type: "ADJUSTMENT",
+      from,
+      to,
+      productUuid,
+      reference: "count-001",
+      sort: "createdAt",
+      order: "desc",
+      tieBreakers: [{ sort: "uuid", order: "asc" }],
+    });
+  });
+
+  it("omits empty reference filters", async () => {
+    const { repository, service } = createService();
+
+    await service.listStockMovements({ reference: "   " });
+
+    expect(repository.lastListQuery).not.toHaveProperty("reference");
   });
 });
