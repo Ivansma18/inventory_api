@@ -7,21 +7,28 @@ datasource db {
   provider = "postgresql"
 }
 
+enum StockMovementType {
+  IN
+  OUT
+  ADJUSTMENT
+}
+
 model Product {
-  id            Int       @id @default(autoincrement())
-  uuid          String    @unique @default(uuid()) @db.Uuid
-  sku           String
-  skuNormalized String    @unique
-  name          String
-  description   String?
-  purchasePrice Decimal   @db.Decimal(18, 2)
-  salePrice     Decimal   @db.Decimal(18, 2)
-  isActive      Boolean   @default(true)
-  categoryId    Int
-  category      Category  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  inventory     Inventory?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id             Int             @id @default(autoincrement())
+  uuid           String          @unique @default(uuid()) @db.Uuid
+  sku            String
+  skuNormalized  String          @unique
+  name           String
+  description    String?
+  purchasePrice  Decimal         @db.Decimal(18, 2)
+  salePrice      Decimal         @db.Decimal(18, 2)
+  isActive       Boolean         @default(true)
+  categoryId     Int
+  category       Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  inventory      Inventory?
+  stockMovements StockMovement[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@index([categoryId])
 }
@@ -34,6 +41,23 @@ model Inventory {
   quantity     Int      @default(0)
   minimumStock Int      @default(0)
   updatedAt    DateTime @updatedAt
+}
+
+model StockMovement {
+  id            Int               @id @default(autoincrement())
+  uuid          String            @unique @default(uuid()) @db.Uuid
+  productId     Int
+  product       Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
+  type          StockMovementType
+  quantity      Int
+  previousStock Int
+  newStock      Int
+  reason        String?
+  reference     String?
+  createdAt     DateTime          @default(now())
+
+  @@index([productId, createdAt, uuid])
+  @@index([createdAt, uuid])
 }
 
 model Category {

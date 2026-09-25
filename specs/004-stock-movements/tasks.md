@@ -3,7 +3,7 @@
 - [x] T1. Definir tipos, entidad y errores de dominio para movimientos, con calculos puros para entrada, salida y ajuste, y sus pruebas unitarias. (RF-1 a RF-9, RF-12, RF-40)
       Hecho cuando: las pruebas de dominio verifican los tres tipos, stocks anterior/nuevo, ajuste a cero, cantidades invalidas y `InsufficientStockError` sin Hono ni Prisma.
 
-- [ ] T2. Añadir el enum y modelo Prisma `StockMovement`, relaciones, UUID e indices, y crear la migracion correspondiente. (RF-1 a RF-6, RF-12, RF-17, RF-18, RF-32, RF-33, RF-40)
+- [x] T2. Añadir el enum y modelo Prisma `StockMovement`, relaciones, UUID e indices, y crear la migracion correspondiente. (RF-1 a RF-6, RF-12, RF-17, RF-18, RF-32, RF-33, RF-40)
       Hecho cuando: el esquema representa el historial inmutable relacionado con Product y la migracion se genera sin modificar datos existentes.
 
 - [ ] T3. Crear pruebas de integracion del esquema y la migracion de StockMovement. (RF-12, RF-17, RF-18, RF-32, RF-33)
