@@ -6,7 +6,7 @@
 - [x] T2. Añadir el enum y modelo Prisma `StockMovement`, relaciones, UUID e indices, y crear la migracion correspondiente. (RF-1 a RF-6, RF-12, RF-17, RF-18, RF-32, RF-33, RF-40)
       Hecho cuando: el esquema representa el historial inmutable relacionado con Product y la migracion se genera sin modificar datos existentes.
 
-- [ ] T3. Crear pruebas de integracion del esquema y la migracion de StockMovement. (RF-12, RF-17, RF-18, RF-32, RF-33)
+- [x] T3. Crear pruebas de integracion del esquema y la migracion de StockMovement. (RF-12, RF-17, RF-18, RF-32, RF-33)
       Hecho cuando: PostgreSQL crea movimientos con UUID, relacion obligatoria e indices esperados, y no hay escritura de `createdBy`, actualizacion ni eliminacion expuestas por el contrato.
 
 - [ ] T4. Definir el contrato de repositorio atomico, los tipos de intencion de movimiento y los tipos de filtros, orden y paginacion. (RF-13 a RF-18, RF-23 a RF-29, RF-35, RF-41, RF-43, RF-45, RF-48)
