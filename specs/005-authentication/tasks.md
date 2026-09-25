@@ -12,7 +12,7 @@
 - [x] T4. Montar el handler público de Better Auth para registro, login, consulta de sesión y sign-out, con normalización de cuerpos, códigos `201`, `200`, `204`, `400`, `401` y `409`. (RF-1 a RF-15, RF-23, RF-26, RF-27)
       Hecho cuando: las pruebas HTTP cubren el ciclo completo, email duplicado con `409 EMAIL_ALREADY_REGISTERED`, credenciales inválidas con `401`, sign-out idempotente con `204` y cookies emitidas correctamente.
 
-- [ ] T5. Implementar el middleware transversal que lea y valide la cookie, inyecte la identidad pública en el contexto y traduzca sesiones ausentes o inválidas a `401 UNAUTHORIZED`. (RF-9, RF-11, RF-16, RF-21, RF-25)
+- [x] T5. Implementar el middleware transversal que lea y valide la cookie, inyecte la identidad pública en el contexto y traduzca sesiones ausentes o inválidas a `401 UNAUTHORIZED`. (RF-9, RF-11, RF-16, RF-21, RF-25)
       Hecho cuando: las pruebas HTTP verifican identidad disponible para la petición, rechazo de cookie ausente/manipulada/cerrada y continuidad con una cookie válida.
 
 - [ ] T6. Aplicar autenticación a `POST /products`, `PATCH /products/:uuid` y `DELETE /products/:uuid` sin proteger sus rutas de lectura. (RF-17, RF-18, RF-19, RF-21, RF-22)
