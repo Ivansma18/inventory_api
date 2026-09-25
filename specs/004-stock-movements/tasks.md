@@ -27,7 +27,7 @@
 - [x] T9. Implementar en el repositorio Prisma los listados con filtros, total antes de paginar y orden estable, junto con pruebas de integracion. (RF-23 a RF-29, RF-35, RF-41, RF-45)
       Hecho cuando: las pruebas verifican tipos, fechas inclusivas abiertas, producto global, referencias case-insensitive no nulas, total filtrado y desempate por UUID.
 
-- [ ] T10. Definir schemas Zod/OpenAPI y pruebas de validacion para params, cuerpos de creacion, query de listados y respuestas. (RF-7, RF-8, RF-10, RF-11, RF-25 a RF-32, RF-34, RF-36, RF-39, RF-44, RF-47, RF-49 a RF-56)
+- [x] T10. Definir schemas Zod/OpenAPI y pruebas de validacion para params, cuerpos de creacion, query de listados y respuestas. (RF-7, RF-8, RF-10, RF-11, RF-25 a RF-32, RF-34, RF-36, RF-39, RF-44, RF-47, RF-49 a RF-56)
       Hecho cuando: los schemas aceptan exclusivamente los cuerpos definidos, eliminan campos desconocidos, aceptan `reference: null` y rechazan todos los valores invalidos con `400`.
 
 - [ ] T11. Implementar el mapper y las rutas HTTP de creacion de movimientos, con traduccion de errores y pruebas de rutas. (RF-9, RF-20 a RF-22, RF-30 a RF-32, RF-36 a RF-38, RF-42 a RF-44, RF-46, RF-47, RF-49 a RF-56)
