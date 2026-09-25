@@ -34,7 +34,7 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - RF-11: SI un usuario consulta su sesión sin una sesión válida, ENTONCES EL SISTEMA responderá `401` con `{ error: { code: "UNAUTHORIZED", message: "Authentication required" } }`.
 - RF-12: CUANDO un usuario cierre sesión, EL SISTEMA invalidará únicamente su sesión actual.
 - RF-13: CUANDO un usuario solicite cerrar sesión sin una sesión válida, EL SISTEMA responderá `204` sin crear ni conservar una sesión.
-- RF-14: MIENTRAS una sesión no sea cerrada, EL SISTEMA la mantendrá activa indefinidamente.
+- RF-14: MIENTRAS una sesión no sea cerrada y no hayan transcurrido 400 días desde su creación, EL SISTEMA la mantendrá activa.
 - RF-15: EL SISTEMA no exigirá verificación del email para iniciar sesión.
 - RF-16: MIENTRAS una petición no tenga una sesión válida, EL SISTEMA rechazará las operaciones protegidas con `401` y responderá `{ error: { code: "UNAUTHORIZED", message: "Authentication required" } }`.
 - RF-17: EL SISTEMA exigirá autenticación para `POST /products`.
@@ -58,6 +58,7 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - Las respuestas exitosas de registro, inicio de sesión y consulta de sesión usarán las estructuras definidas en RF-6, RF-7 y RF-10.
 - La identidad pública de un usuario incluirá únicamente `id` y `email`.
 - La sesión se transportará mediante una cookie de sesión y el campo `session` de las respuestas contendrá exactamente `id` y `createdAt`.
+- La cookie y la sesión tendrán una duración máxima de 400 días.
 - Las pruebas cubrirán registro, inicio de sesión, consulta de sesión, cierre de sesión y protección de endpoints.
 - Las pruebas no expondrán credenciales reales ni secretos.
 - La identidad autenticada estará disponible para las capas que necesiten registrar el usuario de la petición.
@@ -84,6 +85,8 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - Registro exitoso con creación automática de sesión.
 - Inicio de sesión exitoso con respuesta `200`.
 - Usuario con varias sesiones activas.
+- Sesión próxima a cumplir 400 días.
+- Sesión con más de 400 días.
 - Cierre de una sesión sin invalidar las demás sesiones del usuario.
 - Cookie de sesión ausente, inválida o asociada a una sesión cerrada.
 - Cookie válida cuyo identificador no corresponde a una sesión existente.
@@ -121,6 +124,7 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - Las contraseñas no se exponen ni almacenan en texto plano.
 - Las respuestas de autenticación no incluyen tokens ni secretos de sesión.
 - Las respuestas de sesión contienen exactamente `id` y `createdAt`.
+- Las sesiones no permanecen activas después de 400 días desde su creación.
 - No se introducen roles ni permisos.
 - Las lecturas existentes continúan funcionando según el contrato actual.
 - Los contratos y errores de autenticación están documentados y probados.

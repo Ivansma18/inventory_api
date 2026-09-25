@@ -4,7 +4,7 @@
 
 La Spec 005 incorpora autenticación por email y contraseña para resolver la identidad de quien realiza una petición. La implementación debe permitir registro, inicio de sesión, consulta y cierre de sesión; establecer la sesión mediante cookie; exponer únicamente la identidad pública (`id`, `email`) y los metadatos de sesión (`id`, `createdAt`); y proteger las operaciones de escritura de productos y movimientos de inventario.
 
-La autorización por roles y permisos queda fuera de alcance. Las lecturas existentes permanecerán públicas. La implementación respetará la separación entre la feature `auth`, el middleware transversal y la composición de `app.ts`.
+La autorización por roles y permisos queda fuera de alcance. Las lecturas existentes permanecerán públicas. La implementación respetará la separación entre la feature `auth`, el middleware transversal y la composición de `app.ts`. La sesión tendrá una duración máxima de 400 días, límite impuesto por las cookies de Better Auth.
 
 ## Módulos y responsabilidades
 
@@ -27,7 +27,7 @@ La autorización por roles y permisos queda fuera de alcance. Las lecturas exist
 - Incorporar los modelos requeridos por el adaptador Prisma de Better Auth: usuario, sesión, cuenta y verificación.
 - El usuario tendrá un email único, normalizado antes de persistirse, y los campos mínimos requeridos por el adaptador.
 - La cuenta de email/contraseña almacenará únicamente el valor protegido por Better Auth; nunca se persistirá la contraseña original.
-- La sesión tendrá un identificador único, token interno único, referencia al usuario y `createdAt`; los campos internos requeridos por Better Auth no se expondrán en respuestas.
+- La sesión tendrá un identificador único, token interno único, referencia al usuario, `createdAt` y expiración máxima de 400 días; los campos internos requeridos por Better Auth no se expondrán en respuestas.
 - Las relaciones de sesiones y cuentas con el usuario tendrán eliminación en cascada cuando el usuario sea eliminado por una operación futura.
 - La migración no modificará productos, inventarios ni movimientos existentes.
 - La unicidad del email será garantizada por la base de datos además de la validación previa para evitar duplicados concurrentes.
@@ -96,10 +96,10 @@ La autorización por roles y permisos queda fuera de alcance. Las lecturas exist
 - Descartada: proteger todo el prefijo `/products` o `/inventory`. Cambiaría el comportamiento de las lecturas fuera del alcance aprobado.
 - RF cubiertos: RF-16 a RF-22, RF-25.
 
-### Sesión sin expiración automática
+### Duración máxima de sesión
 
-- Elegida: configurar la política de sesión para que la sesión no expire automáticamente y solo deje de ser válida mediante el sign-out de la sesión actual.
-- Descartada: usar una expiración fija o por inactividad. Contradiría RF-14 y requeriría ampliar el contrato de sesión con un comportamiento no aprobado.
+- Elegida: configurar la política de sesión y su cookie con una duración máxima de 400 días, compatible con el límite de Better Auth, y dejar de aceptar la sesión después de ese plazo o mediante sign-out.
+- Descartada: usar una cookie indefinida. Better Auth rechaza cookies con `Max-Age` superior a 400 días.
 - RF cubiertos: RF-12, RF-14, RF-25.
 
 ### Contrato OpenAPI explícito para respuestas públicas
@@ -117,7 +117,7 @@ La autorización por roles y permisos queda fuera de alcance. Las lecturas exist
 | RF-7, RF-8, RF-9             | Iniciar sesión con credenciales válidas, email inexistente y contraseña incorrecta.                                          | integración HTTP              | `200` con cookie y DTO público; errores genéricos `401`.                                                      |
 | RF-10, RF-11                 | Consultar sesión con cookie válida, ausente, manipulada y asociada a sesión inexistente.                                     | integración HTTP              | `200` con exactamente `user.id`, `user.email`, `session.id`, `session.createdAt`; errores `401` estándar.     |
 | RF-12, RF-13, RF-25          | Cerrar sesión con cookie válida, ausente y ya cerrada; intentar usar la cookie después.                                      | integración HTTP + PostgreSQL | `204`; sesión actual inválida; otras sesiones del mismo usuario siguen funcionando.                           |
-| RF-14                        | Mantener una sesión entre peticiones posteriores sin expiración configurada.                                                 | integración HTTP              | La sesión continúa válida hasta sign-out.                                                                     |
+| RF-14                        | Mantener una sesión válida durante su vigencia y consultar una sesión creada con más de 400 días.                            | integración HTTP              | La sesión funciona antes del límite y deja de ser válida después de 400 días.                                |
 | RF-15                        | Iniciar sesión inmediatamente después del registro sin verificación de email.                                                | integración HTTP              | Login permitido sin flujo de verificación.                                                                    |
 | RF-16, RF-21                 | Ejecutar cada ruta protegida sin cookie y con cookie válida.                                                                 | integración HTTP              | Sin cookie: `401 UNAUTHORIZED`; con cookie: la petición continúa.                                             |
 | RF-17 a RF-20                | Probar escrituras protegidas y lecturas públicas de productos, inventario y movimientos.                                     | integración HTTP              | Solo las rutas definidas requieren sesión; las lecturas continúan públicas.                                   |
@@ -127,7 +127,7 @@ La autorización por roles y permisos queda fuera de alcance. Las lecturas exist
 
 ## Riesgos y dudas abiertas
 
-- Riesgo controlado: el esquema interno de Better Auth puede requerir `expiresAt` para persistencia aunque la respuesta pública no lo exponga. La prueba de sesión indefinida debe verificar que no se invalide automáticamente durante la vida de la aplicación; si la versión instalada impide esta política, el comportamiento debe volver a `change-manager` antes de implementar una alternativa.
+- Riesgo controlado: el esquema interno de Better Auth requiere `expiresAt` para persistencia aunque la respuesta pública no lo exponga. La prueba debe verificar que la sesión sea válida dentro de 400 días y deje de aceptarse después del límite.
 - Riesgo controlado: las cookies requieren configuración coherente de CORS y credenciales cuando el cliente esté en otro origen. La prueba HTTP debe cubrir el envío y recepción de la cookie sin incluir secretos en logs.
 - Riesgo controlado: los endpoints estándar de Better Auth pueden no ser rutas OpenAPI nativas. El contrato público debe verificarse en `/openapi.json` sin exponer campos internos.
 - Dudas abiertas: ninguna.

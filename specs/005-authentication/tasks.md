@@ -3,8 +3,8 @@
 - [x] T1. Añadir los modelos Prisma requeridos por Better Auth y su migración PostgreSQL, incluyendo usuario, sesión, cuenta, verificación, unicidad de email/token y relaciones. (RF-1, RF-5, RF-7, RF-12, RF-14, RF-24)
       Hecho cuando: el schema Prisma y la migración crean las entidades de autenticación sin modificar Product, Inventory ni StockMovement, y las pruebas verifican unicidad, relaciones y ausencia de contraseñas en texto plano.
 
-- [ ] T2. Configurar la instancia de Better Auth con adaptador Prisma, email/contraseña, normalización de email, ausencia de verificación de email, cookie de sesión y política de sesión indefinida. (RF-3, RF-4, RF-14, RF-15, RF-24)
-      Hecho cuando: las pruebas de configuración verifican email normalizado, contraseña mínima de 8 caracteres, login sin verificación de email y sesión válida hasta sign-out.
+- [x] T2. Configurar la instancia de Better Auth con adaptador Prisma, email/contraseña, normalización de email, ausencia de verificación de email, cookie de sesión y duración máxima de 400 días. (RF-3, RF-4, RF-14, RF-15, RF-24)
+      Hecho cuando: las pruebas de configuración verifican email normalizado, contraseña mínima de 8 caracteres, login sin verificación de email, sesión válida dentro de 400 días y expiración posterior al límite.
 
 - [ ] T3. Definir los tipos públicos y mappers de autenticación para exponer únicamente `user.id`, `user.email`, `session.id` y `session.createdAt`. (RF-6, RF-7, RF-10, RF-23, RF-27)
       Hecho cuando: las pruebas de serialización demuestran que las respuestas no contienen contraseña, token, secreto, `expiresAt` ni campos adicionales de sesión.
@@ -66,7 +66,7 @@
 | RF-11 | T5, T8, T9      | Consulta sin sesión responde `401 UNAUTHORIZED`.                         |
 | RF-12 | T4, T10         | Sign-out invalida solo la sesión actual.                                 |
 | RF-13 | T4, T9, T10     | Sign-out sin sesión responde `204` idempotentemente.                     |
-| RF-14 | T2, T9, T10     | Sesión continúa activa hasta sign-out.                                   |
+| RF-14 | T2, T9, T10     | Sesión continúa activa dentro de 400 días y expira después del límite.    |
 | RF-15 | T2, T9          | Login permitido sin verificación de email.                               |
 | RF-16 | T5, T6, T7, T10 | Operaciones protegidas rechazan sesiones ausentes o inválidas.           |
 | RF-17 | T6, T11         | `POST /products` protegido y validado.                                   |

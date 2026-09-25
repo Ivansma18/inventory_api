@@ -17,6 +17,7 @@
     "prisma:migrate": "prisma migrate dev"
   },
   "dependencies": {
+    "@better-auth/infra": "^0.4.11",
     "@hono/node-server": "^2.1.1",
     "@hono/swagger-ui": "^0.6.1",
     "@hono/zod-openapi": "^1.6.3",
