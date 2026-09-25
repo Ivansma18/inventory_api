@@ -33,7 +33,7 @@
 - [x] T11. Componer la feature Inventory, registrar `/inventory` y actualizar la comprobación de OpenAPI y Swagger. (RF-31, RF-32)
       Hecho cuando: los tres endpoints aparecen en `/openapi.json`, están disponibles en Swagger y no existe una ruta pública para modificar cantidad.
 
-- [ ] T12. Ajustar el manejador global de errores a `INTERNAL_ERROR` y añadir regresión HTTP para el fallo atómico de creación de producto. (RF-34)
+- [x] T12. Ajustar el manejador global de errores a `INTERNAL_ERROR` y añadir regresión HTTP para el fallo atómico de creación de producto. (RF-34)
       Hecho cuando: un fallo no controlado responde `500` con `{ error: { code: "INTERNAL_ERROR", message } }` y el rollback de creación no persiste el producto.
 
 ## Orden y dependencias
