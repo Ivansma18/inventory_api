@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import type { PrismaClient } from "../../../generated/prisma/client.js";
+import { Prisma, type PrismaClient } from "../../../generated/prisma/client.js";
 import {
   createStockAdjustment,
   createStockEntry,
@@ -23,7 +23,7 @@ export class PrismaStockMovementRepository implements StockMovementRepository {
   async registerAtomically(
     intent: StockMovementWriteIntent,
   ): Promise<StockMovement> {
-    return this.prisma.$transaction(async (transaction) => {
+    return this.runSerializableTransaction(async (transaction) => {
       const product = await transaction.product.findUnique({
         where: { uuid: intent.productUuid },
         select: { id: true },
@@ -69,6 +69,49 @@ export class PrismaStockMovementRepository implements StockMovementRepository {
   async findMany(): Promise<StockMovementListResult> {
     throw new Error("Stock movement listing is not implemented.");
   }
+
+  private async runSerializableTransaction<T>(
+    operation: (transaction: Prisma.TransactionClient) => Promise<T>,
+  ): Promise<T> {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        return await this.prisma.$transaction(operation, {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        });
+      } catch (error) {
+        if (!isTransactionConflict(error) || attempt === 2) {
+          throw error;
+        }
+      }
+    }
+
+    throw new Error("Serializable transaction retry limit was reached.");
+  }
+}
+
+function isTransactionConflict(error: unknown): boolean {
+  const source =
+    error instanceof Error && "cause" in error ? error.cause : error;
+
+  return (
+    (source instanceof Prisma.PrismaClientKnownRequestError &&
+      source.code === "P2034") ||
+    (typeof source === "object" &&
+      source !== null &&
+      "sqlState" in source &&
+      (source.sqlState === "40001" || source.sqlState === "40P01")) ||
+    (typeof source === "object" &&
+      source !== null &&
+      "kind" in source &&
+      source.kind === "TransactionWriteConflict") ||
+    (source instanceof Error &&
+      source.message === "TransactionWriteConflict") ||
+    (typeof error === "object" &&
+      error !== null &&
+      "kind" in error &&
+      error.kind === "TransactionWriteConflict") ||
+    (error instanceof Error && error.message === "TransactionWriteConflict")
+  );
 }
 
 function createMovement(

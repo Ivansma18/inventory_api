@@ -21,7 +21,7 @@
 - [x] T7. Implementar `PrismaStockMovementRepository` para crear entrada, salida y ajuste en una transaccion atomica, y cubrirlo con pruebas de integracion. (RF-1 a RF-16, RF-38, RF-42, RF-43, RF-48)
       Hecho cuando: cada operacion actualiza Inventory y crea exactamente un movimiento con los stocks correctos; producto inexistente, Inventory ausente, producto inactivo y rollback estan cubiertos.
 
-- [ ] T8. Incorporar aislamiento serializable y reintentos acotados de conflictos en el repositorio Prisma, con pruebas de concurrencia. (RF-9, RF-13 a RF-16, RF-42)
+- [x] T8. Incorporar aislamiento serializable y reintentos acotados de conflictos en el repositorio Prisma, con pruebas de concurrencia. (RF-9, RF-13 a RF-16, RF-42)
       Hecho cuando: salidas concurrentes no persisten stock negativo y combinaciones ajuste-entrada y ajuste-salida no pierden actualizaciones ni generan historiales inconsistentes.
 
 - [ ] T9. Implementar en el repositorio Prisma los listados con filtros, total antes de paginar y orden estable, junto con pruebas de integracion. (RF-23 a RF-29, RF-35, RF-41, RF-45)

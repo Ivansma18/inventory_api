@@ -70,6 +70,45 @@ async function inventoryQuantity(productId: number): Promise<number | null> {
   return inventory?.quantity ?? null;
 }
 
+async function delayInventoryUpdates(): Promise<() => Promise<void>> {
+  const triggerName = `inventory_update_delay_${randomUUID().replaceAll("-", "")}`;
+  const functionName = `${triggerName}_function`;
+
+  await prisma.$executeRawUnsafe(`
+    CREATE FUNCTION "${functionName}"() RETURNS trigger AS $$
+    BEGIN
+      PERFORM pg_sleep(0.05);
+      RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+  `);
+  await prisma.$executeRawUnsafe(`
+    CREATE TRIGGER "${triggerName}"
+    BEFORE UPDATE ON "Inventory"
+    FOR EACH ROW EXECUTE FUNCTION "${functionName}"();
+  `);
+
+  return async () => {
+    await prisma.$executeRawUnsafe(
+      `DROP TRIGGER IF EXISTS "${triggerName}" ON "Inventory"`,
+    );
+    await prisma.$executeRawUnsafe(
+      `DROP FUNCTION IF EXISTS "${functionName}"()`,
+    );
+  };
+}
+
+async function expectChainedMovements(productId: number, initialStock: number) {
+  const [first, second] = await prisma.stockMovement.findMany({
+    where: { productId },
+    orderBy: { createdAt: "asc" },
+  });
+
+  expect(first).toMatchObject({ previousStock: initialStock });
+  expect(second).toMatchObject({ previousStock: first?.newStock });
+  expect(await inventoryQuantity(productId)).toBe(second?.newStock);
+}
+
 describe("PrismaStockMovementRepository", () => {
   it("creates an entry and updates inventory in the same operation", async () => {
     const product = await createProduct({ quantity: 5 });
@@ -238,4 +277,105 @@ describe("PrismaStockMovementRepository", () => {
       );
     }
   });
+
+  it("serializes concurrent exits and rejects the retry that no longer has stock", async () => {
+    const product = await createProduct({ quantity: 5 });
+    const cleanup = await delayInventoryUpdates();
+
+    try {
+      const results = await Promise.allSettled([
+        repository.registerAtomically({
+          type: "OUT",
+          productUuid: product.uuid,
+          quantity: 3,
+          reference: null,
+        }),
+        repository.registerAtomically({
+          type: "OUT",
+          productUuid: product.uuid,
+          quantity: 3,
+          reference: null,
+        }),
+      ]);
+
+      expect(results.filter(isFulfilled)).toHaveLength(1);
+      expect(results.filter(isRejected)[0]?.reason).toBeInstanceOf(
+        InsufficientStockError,
+      );
+      expect(await inventoryQuantity(product.id)).toBe(2);
+      await expect(
+        prisma.stockMovement.count({ where: { productId: product.id } }),
+      ).resolves.toBe(1);
+    } finally {
+      await cleanup();
+    }
+  });
+
+  it("serializes a concurrent adjustment and entry without losing either movement", async () => {
+    const product = await createProduct({ quantity: 10 });
+    const cleanup = await delayInventoryUpdates();
+
+    try {
+      await expect(
+        Promise.all([
+          repository.registerAtomically({
+            type: "ADJUSTMENT",
+            productUuid: product.uuid,
+            quantity: 20,
+            reason: "Inventory count",
+            reference: null,
+          }),
+          repository.registerAtomically({
+            type: "IN",
+            productUuid: product.uuid,
+            quantity: 5,
+            reference: null,
+          }),
+        ]),
+      ).resolves.toHaveLength(2);
+      await expectChainedMovements(product.id, 10);
+    } finally {
+      await cleanup();
+    }
+  });
+
+  it("serializes a concurrent adjustment and exit without losing either movement", async () => {
+    const product = await createProduct({ quantity: 10 });
+    const cleanup = await delayInventoryUpdates();
+
+    try {
+      await expect(
+        Promise.all([
+          repository.registerAtomically({
+            type: "ADJUSTMENT",
+            productUuid: product.uuid,
+            quantity: 20,
+            reason: "Inventory count",
+            reference: null,
+          }),
+          repository.registerAtomically({
+            type: "OUT",
+            productUuid: product.uuid,
+            quantity: 3,
+            reference: null,
+          }),
+        ]),
+      ).resolves.toHaveLength(2);
+      await expectChainedMovements(product.id, 10);
+    } finally {
+      await cleanup();
+    }
+  });
 });
+
+function isFulfilled<T>(
+  result: PromiseSettledResult<T>,
+): result is PromiseFulfilledResult<T> {
+  return result.status === "fulfilled";
+}
+
+function isRejected<T>(
+  result: PromiseSettledResult<T>,
+): result is PromiseRejectedResult {
+  return result.status === "rejected";
+}
