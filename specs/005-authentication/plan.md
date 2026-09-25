@@ -8,17 +8,18 @@ La autorización por roles y permisos queda fuera de alcance. Las lecturas exist
 
 ## Módulos y responsabilidades
 
-| Módulo                                              | Responsabilidad                                                                                                                                                            | RF cubiertos                                          |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `prisma/schema.prisma` y migración de autenticación | Añadir las entidades persistentes requeridas por Better Auth para usuarios, sesiones, cuentas y verificaciones, con unicidad de email y token de sesión.                   | RF-1, RF-5, RF-7, RF-12, RF-14, RF-24                 |
-| `src/features/auth/auth.config.ts`                  | Construir la instancia de Better Auth con email/contraseña habilitado, sin verificación de email, adaptador Prisma y configuración de cookies/sesiones.                    | RF-3 a RF-15, RF-23, RF-24, RF-27                     |
-| `src/features/auth/auth.routes.ts`                  | Exponer el handler de Better Auth para registro, login, consulta de sesión y sign-out bajo la base pública de autenticación.                                               | RF-1 a RF-15, RF-23, RF-26, RF-27                     |
-| `src/features/auth/auth.types.ts`                   | Definir los tipos públicos de identidad, metadatos de sesión y contexto de identidad autenticada, sin incluir secretos.                                                    | RF-6, RF-7, RF-10, RF-23, RF-27                       |
-| `src/features/auth/index.ts`                        | Exponer únicamente la API pública de la feature auth para la composition root.                                                                                             | RF-1 a RF-15                                          |
-| `src/shared/middlewares/auth.middleware.ts`         | Leer la cookie de sesión, validar la sesión con Better Auth, inyectar la identidad pública en el contexto y devolver el error estándar cuando no exista una sesión válida. | RF-9, RF-11, RF-16, RF-21, RF-25                      |
-| `src/app.ts`                                        | Montar las rutas de autenticación, aplicar el middleware solo a las operaciones de escritura definidas y conservar públicas las lecturas.                                  | RF-16 a RF-22                                         |
-| Schemas y contrato OpenAPI de autenticación         | Documentar los cuerpos de registro/login, respuestas públicas, errores `400`, `401`, `409` y `204`, sin documentar tokens ni secretos.                                     | RF-3 a RF-8, RF-10, RF-11, RF-13, RF-16, RF-23, RF-27 |
-| Pruebas de autenticación y protección de rutas      | Verificar persistencia, cookies, sesiones, errores, identidad pública y acceso a endpoints protegidos y públicos.                                                          | RF-1 a RF-27                                          |
+| Módulo                                                                                 | Responsabilidad                                                                                                                                                            | RF cubiertos                                          |
+| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `prisma/schema.prisma` y migración de autenticación                                    | Añadir las entidades persistentes requeridas por Better Auth para usuarios, sesiones, cuentas y verificaciones, con unicidad de email y token de sesión.                   | RF-1, RF-5, RF-7, RF-12, RF-14, RF-24                 |
+| `src/features/auth/auth.config.ts`                                                     | Construir la instancia de Better Auth con email/contraseña habilitado, sin verificación de email, adaptador Prisma y configuración de cookies/sesiones.                    | RF-3 a RF-15, RF-23, RF-24, RF-27                     |
+| `src/features/auth/auth.routes.ts`                                                     | Exponer el handler de Better Auth para registro, login, consulta de sesión y sign-out bajo la base pública de autenticación.                                               | RF-1 a RF-15, RF-23, RF-26, RF-27                     |
+| `src/features/auth/auth.types.ts`                                                      | Definir los tipos públicos de identidad, metadatos de sesión y contexto de identidad autenticada, sin incluir secretos.                                                    | RF-6, RF-7, RF-10, RF-23, RF-27                       |
+| `src/features/auth/index.ts`                                                           | Exponer únicamente la API pública de la feature auth para la composition root.                                                                                             | RF-1 a RF-15                                          |
+| `src/shared/middlewares/auth.middleware.ts`                                            | Leer la cookie de sesión, validar la sesión con Better Auth, inyectar la identidad pública en el contexto y devolver el error estándar cuando no exista una sesión válida. | RF-9, RF-11, RF-16, RF-21, RF-25                      |
+| `src/app.ts`                                                                           | Montar las rutas de autenticación, aplicar el middleware solo a las operaciones de escritura definidas y conservar públicas las lecturas.                                  | RF-16 a RF-22                                         |
+| `products/domain`, `products/application`, `products/infrastructure` y `products/http` | Añadir la operación de desactivación lógica y la ruta `DELETE /products/:uuid`, reutilizando `isActive=false` y el contrato de errores existente.                          | RF-19, RF-21, RF-28                                   |
+| Schemas y contrato OpenAPI de autenticación                                            | Documentar los cuerpos de registro/login, respuestas públicas, errores `400`, `401`, `409` y `204`, sin documentar tokens ni secretos.                                     | RF-3 a RF-8, RF-10, RF-11, RF-13, RF-16, RF-23, RF-27 |
+| Pruebas de autenticación y protección de rutas                                         | Verificar persistencia, cookies, sesiones, errores, identidad pública y acceso a endpoints protegidos y públicos.                                                          | RF-1 a RF-27                                          |
 
 ## Modelo de datos y contratos
 
@@ -63,6 +64,7 @@ La autorización por roles y permisos queda fuera de alcance. Las lecturas exist
 - Mantener públicas las rutas de lectura existentes y la consulta de movimientos.
 - Una sesión válida permitirá continuar hacia la ruta protegida sin introducir autorización por roles.
 - La identidad pública validada estará disponible para el contexto de la petición para futuras features que necesiten atribución.
+- `DELETE /products/:uuid` conservará el producto y devolverá únicamente `{ data: { uuid, isActive: false } }` con `200`.
 
 ## Decisiones técnicas
 
@@ -96,6 +98,12 @@ La autorización por roles y permisos queda fuera de alcance. Las lecturas exist
 - Descartada: proteger todo el prefijo `/products` o `/inventory`. Cambiaría el comportamiento de las lecturas fuera del alcance aprobado.
 - RF cubiertos: RF-16 a RF-22, RF-25.
 
+### Desactivación lógica de productos
+
+- Elegida: implementar `DELETE /products/:uuid` como actualización de `isActive=false`, conservando el registro para evitar romper referencias históricas y relaciones existentes.
+- Descartada: eliminar físicamente el producto. Podría romper movimientos de stock, inventario y trazabilidad asociada.
+- RF cubiertos: RF-19, RF-21, RF-28.
+
 ### Duración máxima de sesión
 
 - Elegida: configurar la política de sesión y su cookie con una duración máxima de 400 días, compatible con el límite de Better Auth, y dejar de aceptar la sesión después de ese plazo o mediante sign-out.
@@ -117,12 +125,13 @@ La autorización por roles y permisos queda fuera de alcance. Las lecturas exist
 | RF-7, RF-8, RF-9             | Iniciar sesión con credenciales válidas, email inexistente y contraseña incorrecta.                                          | integración HTTP              | `200` con cookie y DTO público; errores genéricos `401`.                                                      |
 | RF-10, RF-11                 | Consultar sesión con cookie válida, ausente, manipulada y asociada a sesión inexistente.                                     | integración HTTP              | `200` con exactamente `user.id`, `user.email`, `session.id`, `session.createdAt`; errores `401` estándar.     |
 | RF-12, RF-13, RF-25          | Cerrar sesión con cookie válida, ausente y ya cerrada; intentar usar la cookie después.                                      | integración HTTP + PostgreSQL | `204`; sesión actual inválida; otras sesiones del mismo usuario siguen funcionando.                           |
-| RF-14                        | Mantener una sesión válida durante su vigencia y consultar una sesión creada con más de 400 días.                            | integración HTTP              | La sesión funciona antes del límite y deja de ser válida después de 400 días.                                |
+| RF-14                        | Mantener una sesión válida durante su vigencia y consultar una sesión creada con más de 400 días.                            | integración HTTP              | La sesión funciona antes del límite y deja de ser válida después de 400 días.                                 |
 | RF-15                        | Iniciar sesión inmediatamente después del registro sin verificación de email.                                                | integración HTTP              | Login permitido sin flujo de verificación.                                                                    |
 | RF-16, RF-21                 | Ejecutar cada ruta protegida sin cookie y con cookie válida.                                                                 | integración HTTP              | Sin cookie: `401 UNAUTHORIZED`; con cookie: la petición continúa.                                             |
 | RF-17 a RF-20                | Probar escrituras protegidas y lecturas públicas de productos, inventario y movimientos.                                     | integración HTTP              | Solo las rutas definidas requieren sesión; las lecturas continúan públicas.                                   |
 | RF-22                        | Ejecutar operaciones con usuarios autenticados sin roles asignados.                                                          | integración HTTP              | La sesión es suficiente; no se evalúan permisos ni roles.                                                     |
 | RF-23, RF-24, RF-27          | Inspeccionar respuestas, cookie y filas persistidas tras registro/login.                                                     | integración HTTP + PostgreSQL | No aparecen contraseñas, tokens, secretos ni `expiresAt` en respuestas; la contraseña no está en texto plano. |
+| RF-28                        | Eliminar lógicamente un producto con sesión válida, repetir la operación y usar UUID inválido/inexistente.                   | integración HTTP + PostgreSQL | Responde `200`, conserva el producto con `isActive=false`, y devuelve `400`/`404` según el error.             |
 | RF-26                        | Enviar campos desconocidos en registro, login y consulta de sesión.                                                          | integración HTTP              | Los campos desconocidos se ignoran y no alteran la cuenta ni la sesión.                                       |
 
 ## Riesgos y dudas abiertas

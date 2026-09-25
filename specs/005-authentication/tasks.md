@@ -15,8 +15,8 @@
 - [x] T5. Implementar el middleware transversal que lea y valide la cookie, inyecte la identidad pública en el contexto y traduzca sesiones ausentes o inválidas a `401 UNAUTHORIZED`. (RF-9, RF-11, RF-16, RF-21, RF-25)
       Hecho cuando: las pruebas HTTP verifican identidad disponible para la petición, rechazo de cookie ausente/manipulada/cerrada y continuidad con una cookie válida.
 
-- [ ] T6. Aplicar autenticación a `POST /products`, `PATCH /products/:uuid` y `DELETE /products/:uuid` sin proteger sus rutas de lectura. (RF-17, RF-18, RF-19, RF-21, RF-22)
-      Hecho cuando: cada escritura responde `401` sin sesión, funciona con sesión válida y las lecturas de productos continúan públicas sin evaluación de roles.
+- [x] T6. Implementar la desactivación lógica de productos y aplicar autenticación a `POST /products`, `PATCH /products/:uuid` y `DELETE /products/:uuid` sin proteger sus rutas de lectura. (RF-17, RF-18, RF-19, RF-21, RF-22, RF-28)
+      Hecho cuando: cada escritura responde `401` sin sesión, funciona con sesión válida, `DELETE` conserva el producto con `isActive=false` y devuelve `200 { data: { uuid, isActive: false } }`, y las lecturas continúan públicas sin evaluación de roles.
 
 - [ ] T7. Aplicar autenticación a `POST /inventory/:productUuid/entries`, `POST /inventory/:productUuid/exits` y `POST /inventory/:productUuid/adjustments`, manteniendo públicas las consultas. (RF-20, RF-21, RF-22)
       Hecho cuando: las tres operaciones responden `401` sin sesión, funcionan con sesión válida y las consultas de inventario y movimientos continúan públicas.
@@ -51,32 +51,33 @@
 
 ## Cobertura de requisitos
 
-| RF    | Tarea           | Evidencia                                                                |
-| ----- | --------------- | ------------------------------------------------------------------------ |
-| RF-1  | T1, T4, T9      | Registro válido crea usuario y sesión.                                   |
-| RF-2  | T3, T4, T9      | Registro reconoce únicamente email y contraseña.                         |
-| RF-3  | T2, T4, T9      | Email inválido responde `400` después de normalización.                  |
-| RF-4  | T2, T4, T9      | Contraseña menor de 8 caracteres responde `400`.                         |
-| RF-5  | T1, T4, T9      | Email normalizado duplicado responde `409 EMAIL_ALREADY_REGISTERED`.     |
-| RF-6  | T3, T4, T8, T9  | Registro responde `201`, cookie y DTO público exacto.                    |
-| RF-7  | T3, T4, T8, T9  | Login responde `200`, cookie y DTO público exacto.                       |
-| RF-8  | T4, T8, T9      | Credenciales inválidas responden `401 UNAUTHORIZED`.                     |
-| RF-9  | T4, T5, T9      | Cookie creada en login autentica peticiones posteriores.                 |
-| RF-10 | T3, T4, T8, T9  | Consulta válida responde identidad y sesión pública.                     |
-| RF-11 | T5, T8, T9      | Consulta sin sesión responde `401 UNAUTHORIZED`.                         |
-| RF-12 | T4, T10         | Sign-out invalida solo la sesión actual.                                 |
-| RF-13 | T4, T9, T10     | Sign-out sin sesión responde `204` idempotentemente.                     |
-| RF-14 | T2, T9, T10     | Sesión continúa activa dentro de 400 días y expira después del límite.    |
-| RF-15 | T2, T9          | Login permitido sin verificación de email.                               |
-| RF-16 | T5, T6, T7, T10 | Operaciones protegidas rechazan sesiones ausentes o inválidas.           |
-| RF-17 | T6, T11         | `POST /products` protegido y validado.                                   |
-| RF-18 | T6, T11         | `PATCH /products/:uuid` protegido y validado.                            |
-| RF-19 | T6, T11         | `DELETE /products/:uuid` protegido y validado.                           |
-| RF-20 | T7, T11         | Tres operaciones de movimientos protegidas y validadas.                  |
-| RF-21 | T5, T6, T7, T10 | Sesión válida permite continuar y conservar sesiones paralelas.          |
-| RF-22 | T6, T7, T11     | No se evalúan roles ni permisos.                                         |
-| RF-23 | T3, T4, T8, T9  | Ninguna respuesta expone contraseñas.                                    |
-| RF-24 | T1, T2, T9      | Persistencia usa contraseña protegida, nunca texto plano.                |
-| RF-25 | T5, T10         | Cookie de sesión cerrada es rechazada posteriormente.                    |
-| RF-26 | T4, T9          | Campos desconocidos se ignoran en las tres operaciones de autenticación. |
-| RF-27 | T3, T8, T9      | Respuestas contienen solo metadatos de sesión permitidos.                |
+| RF    | Tarea           | Evidencia                                                                          |
+| ----- | --------------- | ---------------------------------------------------------------------------------- |
+| RF-1  | T1, T4, T9      | Registro válido crea usuario y sesión.                                             |
+| RF-2  | T3, T4, T9      | Registro reconoce únicamente email y contraseña.                                   |
+| RF-3  | T2, T4, T9      | Email inválido responde `400` después de normalización.                            |
+| RF-4  | T2, T4, T9      | Contraseña menor de 8 caracteres responde `400`.                                   |
+| RF-5  | T1, T4, T9      | Email normalizado duplicado responde `409 EMAIL_ALREADY_REGISTERED`.               |
+| RF-6  | T3, T4, T8, T9  | Registro responde `201`, cookie y DTO público exacto.                              |
+| RF-7  | T3, T4, T8, T9  | Login responde `200`, cookie y DTO público exacto.                                 |
+| RF-8  | T4, T8, T9      | Credenciales inválidas responden `401 UNAUTHORIZED`.                               |
+| RF-9  | T4, T5, T9      | Cookie creada en login autentica peticiones posteriores.                           |
+| RF-10 | T3, T4, T8, T9  | Consulta válida responde identidad y sesión pública.                               |
+| RF-11 | T5, T8, T9      | Consulta sin sesión responde `401 UNAUTHORIZED`.                                   |
+| RF-12 | T4, T10         | Sign-out invalida solo la sesión actual.                                           |
+| RF-13 | T4, T9, T10     | Sign-out sin sesión responde `204` idempotentemente.                               |
+| RF-14 | T2, T9, T10     | Sesión continúa activa dentro de 400 días y expira después del límite.             |
+| RF-15 | T2, T9          | Login permitido sin verificación de email.                                         |
+| RF-16 | T5, T6, T7, T10 | Operaciones protegidas rechazan sesiones ausentes o inválidas.                     |
+| RF-17 | T6, T11         | `POST /products` protegido y validado.                                             |
+| RF-18 | T6, T11         | `PATCH /products/:uuid` protegido y validado.                                      |
+| RF-19 | T6, T11         | `DELETE /products/:uuid` protegido y validado.                                     |
+| RF-20 | T7, T11         | Tres operaciones de movimientos protegidas y validadas.                            |
+| RF-21 | T5, T6, T7, T10 | Sesión válida permite continuar y conservar sesiones paralelas.                    |
+| RF-22 | T6, T7, T11     | No se evalúan roles ni permisos.                                                   |
+| RF-23 | T3, T4, T8, T9  | Ninguna respuesta expone contraseñas.                                              |
+| RF-24 | T1, T2, T9      | Persistencia usa contraseña protegida, nunca texto plano.                          |
+| RF-25 | T5, T10         | Cookie de sesión cerrada es rechazada posteriormente.                              |
+| RF-26 | T4, T9          | Campos desconocidos se ignoran en las tres operaciones de autenticación.           |
+| RF-27 | T3, T8, T9      | Respuestas contienen solo metadatos de sesión permitidos.                          |
+| RF-28 | T6, T11         | DELETE desactiva lógicamente el producto y devuelve la respuesta pública definida. |

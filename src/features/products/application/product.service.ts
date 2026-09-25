@@ -119,6 +119,10 @@ export class ProductService {
     return this.products.update(updatedProduct);
   }
 
+  async deleteProduct(uuid: string): Promise<Product> {
+    return this.updateProduct(uuid, { isActive: false });
+  }
+
   private async requireActiveCategory(
     categoryUuid: string | undefined,
   ): Promise<void> {

@@ -1,3 +1,4 @@
+import type { MiddlewareHandler } from "hono";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 
 import type {
@@ -18,9 +19,11 @@ import {
   ProductSkuAlreadyExistsError,
 } from "../domain/product.errors.js";
 import { errorHandler } from "../../../shared/errors/error-handler.js";
+import type { AuthMiddlewareEnv } from "../../../shared/middlewares/auth.middleware.js";
 import { toProductListResponse, toProductResponse } from "./product.mapper.js";
 import {
   createProductSchema,
+  deletedProductDataResponseSchema,
   errorResponseSchema,
   productDataResponseSchema,
   productListQuerySchema,
@@ -34,10 +37,12 @@ export interface ProductHttpService {
   getProduct(uuid: string): Promise<Product>;
   listProducts(input?: ListProductsInput): Promise<ProductListResult>;
   updateProduct(uuid: string, input: UpdateProductInput): Promise<Product>;
+  deleteProduct(uuid: string): Promise<Product>;
 }
 
 interface ProductRoutesDependencies {
   service: ProductHttpService;
+  authMiddleware?: MiddlewareHandler<AuthMiddlewareEnv>;
 }
 
 const createProductRoute = createRoute({
@@ -149,10 +154,36 @@ const updateProductRoute = createRoute({
   },
 });
 
+const deleteProductRoute = createRoute({
+  method: "delete",
+  path: "/{uuid}",
+  tags: ["Products"],
+  request: { params: productParamsSchema },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: deletedProductDataResponseSchema,
+        },
+      },
+      description: "Product deactivated",
+    },
+    400: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "Invalid product UUID",
+    },
+    404: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "Product not found",
+    },
+  },
+});
+
 export function createProductRoutes({
   service,
-}: ProductRoutesDependencies): OpenAPIHono {
-  const routes = new OpenAPIHono({
+  authMiddleware,
+}: ProductRoutesDependencies): OpenAPIHono<AuthMiddlewareEnv> {
+  const routes = new OpenAPIHono<AuthMiddlewareEnv>({
     defaultHook: (result, context) => {
       if (!result.success) {
         return context.json(
@@ -167,6 +198,16 @@ export function createProductRoutes({
       }
     },
   });
+
+  if (authMiddleware) {
+    routes.use("*", async (context, next) => {
+      if (!["POST", "PATCH", "DELETE"].includes(context.req.method)) {
+        return next();
+      }
+
+      return authMiddleware(context, next);
+    });
+  }
 
   routes.openapi(createProductRoute, async (context) => {
     const product = await service.createProduct(context.req.valid("json"));
@@ -196,6 +237,15 @@ export function createProductRoutes({
     );
 
     return context.json({ data: toProductResponse(product) }, 200);
+  });
+  routes.openapi(deleteProductRoute, async (context) => {
+    const { uuid } = context.req.valid("param");
+    const product = await service.deleteProduct(uuid);
+
+    return context.json(
+      { data: { uuid: product.uuid, isActive: false as const } },
+      200,
+    );
   });
   routes.onError((error, context) => {
     if (error instanceof ProductNotFoundError) {

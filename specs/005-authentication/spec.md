@@ -48,6 +48,7 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - RF-25: CUANDO la sesión actual sea cerrada, EL SISTEMA rechazará las peticiones posteriores que dependan de esa sesión sin invalidar otras sesiones activas del mismo usuario.
 - RF-26: CUANDO el cliente envíe campos no reconocidos durante el registro, inicio de sesión o consulta de sesión, EL SISTEMA los ignorará y procesará únicamente los campos definidos para la operación.
 - RF-27: EL SISTEMA no incluirá tokens, secretos, `expiresAt` ni otros campos adicionales en `session` dentro de las respuestas de registro, inicio de sesión o consulta de sesión.
+- RF-28: CUANDO un usuario autenticado solicite `DELETE /products/:uuid` para un producto existente, EL SISTEMA establecerá `isActive=false`, conservará el producto y devolverá `200` con `{ data: { uuid, isActive: false } }`.
 
 ## Requisitos no funcionales
 
@@ -92,6 +93,10 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - Cookie válida cuyo identificador no corresponde a una sesión existente.
 - Cookie manipulada.
 - Cierre de sesión de una sesión ya cerrada.
+- Eliminación lógica de un producto activo.
+- Eliminación lógica repetida de un producto ya inactivo.
+- Eliminación de un producto inexistente.
+- Eliminación con UUID inválido.
 - Fallo de persistencia durante el registro, inicio o cierre de sesión.
 - Campos desconocidos durante el inicio o consulta de sesión.
 - Respuestas de autenticación sin tokens ni secretos de sesión.
@@ -128,6 +133,7 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - No se introducen roles ni permisos.
 - Las lecturas existentes continúan funcionando según el contrato actual.
 - Los contratos y errores de autenticación están documentados y probados.
+- La eliminación lógica de productos protegida por sesión conserva el registro y devuelve `uuid` e `isActive=false`.
 
 ## Dudas abiertas
 
