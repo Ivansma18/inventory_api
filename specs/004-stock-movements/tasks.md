@@ -36,7 +36,7 @@
 - [x] T12. Implementar las rutas HTTP de listado por producto y global, con mapeo de paginacion y pruebas de rutas. (RF-23 a RF-31, RF-34 a RF-36, RF-39, RF-41, RF-45)
       Hecho cuando: ambos listados devuelven `data` y `pagination`, validan filtros y reflejan correctamente el total, orden y filtros delegados al servicio.
 
-- [ ] T13. Componer la feature Stock Movements, registrar las cinco rutas en `app.ts` y verificar OpenAPI y Swagger. (RF-19 a RF-24, RF-46)
+- [x] T13. Componer la feature Stock Movements, registrar las cinco rutas en `app.ts` y verificar OpenAPI y Swagger. (RF-19 a RF-24, RF-46)
       Hecho cuando: las tres operaciones aparecen bajo `/inventory`, el listado global bajo `/stock-movements`, las cinco rutas estan en `/openapi.json` y no se agrega una ruta publica para `Inventory.quantity`.
 
 ## Orden y dependencias

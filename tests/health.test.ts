@@ -18,6 +18,8 @@ describe("GET /health", () => {
       categoriesResponse,
       inventoryResponse,
       missingProductResponse,
+      stockMovementsResponse,
+      invalidMovementHistoryResponse,
     ] = await Promise.all([
       app.request("/openapi.json"),
       app.request("/docs"),
@@ -25,6 +27,8 @@ describe("GET /health", () => {
       app.request("/categories"),
       app.request("/inventory"),
       app.request("/products/550e8400-e29b-41d4-a716-446655440099"),
+      app.request("/stock-movements"),
+      app.request("/inventory/not-a-uuid/movements"),
     ]);
 
     expect(openApiResponse.status).toBe(200);
@@ -59,6 +63,21 @@ describe("GET /health", () => {
         "/inventory/{productUuid}/minimum-stock": {
           patch: expect.anything(),
         },
+        "/inventory/{productUuid}/entries": {
+          post: expect.anything(),
+        },
+        "/inventory/{productUuid}/exits": {
+          post: expect.anything(),
+        },
+        "/inventory/{productUuid}/adjustments": {
+          post: expect.anything(),
+        },
+        "/inventory/{productUuid}/movements": {
+          get: expect.anything(),
+        },
+        "/stock-movements": {
+          get: expect.anything(),
+        },
       },
     });
     expect(
@@ -85,6 +104,8 @@ describe("GET /health", () => {
     expect(categoriesResponse.status).toBe(200);
     expect(inventoryResponse.status).toBe(200);
     expect(missingProductResponse.status).toBe(404);
+    expect(stockMovementsResponse.status).toBe(200);
+    expect(invalidMovementHistoryResponse.status).toBe(400);
     await expect(productsResponse.json()).resolves.toMatchObject({
       data: expect.any(Array),
       pagination: { page: 1, limit: 15 },
@@ -94,6 +115,10 @@ describe("GET /health", () => {
       pagination: { page: 1, limit: 15 },
     });
     await expect(inventoryResponse.json()).resolves.toMatchObject({
+      data: expect.any(Array),
+      pagination: { page: 1, limit: 15 },
+    });
+    await expect(stockMovementsResponse.json()).resolves.toMatchObject({
       data: expect.any(Array),
       pagination: { page: 1, limit: 15 },
     });

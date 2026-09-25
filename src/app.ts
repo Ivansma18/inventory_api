@@ -5,6 +5,10 @@ import { cors } from "hono/cors";
 import { categoryRoutes } from "./features/categories/index.js";
 import { inventoryRoutes } from "./features/inventory/index.js";
 import { productRoutes } from "./features/products/index.js";
+import {
+  stockMovementInventoryRoutes,
+  stockMovementRoutes,
+} from "./features/stock-movements/index.js";
 import { errorHandler } from "./shared/errors/error-handler.js";
 
 const healthRoute = createRoute({
@@ -33,6 +37,8 @@ app.openapi(healthRoute, (context) => context.json({ status: "ok" }, 200));
 app.route("/products", productRoutes);
 app.route("/categories", categoryRoutes);
 app.route("/inventory", inventoryRoutes);
+app.route("/inventory", stockMovementInventoryRoutes);
+app.route("/stock-movements", stockMovementRoutes);
 
 app.doc("/openapi.json", {
   openapi: "3.0.3",
