@@ -6,7 +6,7 @@
 - [x] T2. Configurar la instancia de Better Auth con adaptador Prisma, email/contraseña, normalización de email, ausencia de verificación de email, cookie de sesión y duración máxima de 400 días. (RF-3, RF-4, RF-14, RF-15, RF-24)
       Hecho cuando: las pruebas de configuración verifican email normalizado, contraseña mínima de 8 caracteres, login sin verificación de email, sesión válida dentro de 400 días y expiración posterior al límite.
 
-- [ ] T3. Definir los tipos públicos y mappers de autenticación para exponer únicamente `user.id`, `user.email`, `session.id` y `session.createdAt`. (RF-6, RF-7, RF-10, RF-23, RF-27)
+- [x] T3. Definir los tipos públicos y mappers de autenticación para exponer únicamente `user.id`, `user.email`, `session.id` y `session.createdAt`. (RF-6, RF-7, RF-10, RF-23, RF-27)
       Hecho cuando: las pruebas de serialización demuestran que las respuestas no contienen contraseña, token, secreto, `expiresAt` ni campos adicionales de sesión.
 
 - [ ] T4. Montar el handler público de Better Auth para registro, login, consulta de sesión y sign-out, con normalización de cuerpos, códigos `201`, `200`, `204`, `400`, `401` y `409`. (RF-1 a RF-15, RF-23, RF-26, RF-27)
