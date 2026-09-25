@@ -12,6 +12,7 @@ import {
   StockMovementProductNotFoundError,
 } from "../domain/stock-movement.errors.js";
 import type {
+  StockMovementListQuery,
   StockMovementListResult,
   StockMovementRepository,
   StockMovementWriteIntent,
@@ -66,8 +67,22 @@ export class PrismaStockMovementRepository implements StockMovementRepository {
     });
   }
 
-  async findMany(): Promise<StockMovementListResult> {
-    throw new Error("Stock movement listing is not implemented.");
+  async findMany(
+    query: StockMovementListQuery,
+  ): Promise<StockMovementListResult> {
+    const where = toStockMovementWhere(query);
+    const [movements, total] = await this.prisma.$transaction([
+      this.prisma.stockMovement.findMany({
+        where,
+        include: stockMovementProductInclude,
+        orderBy: [{ createdAt: "desc" }, { uuid: "asc" }],
+        skip: (query.page - 1) * query.limit,
+        take: query.limit,
+      }),
+      this.prisma.stockMovement.count({ where }),
+    ]);
+
+    return { movements: movements.map(toDomainStockMovement), total };
   }
 
   private async runSerializableTransaction<T>(
@@ -87,6 +102,53 @@ export class PrismaStockMovementRepository implements StockMovementRepository {
 
     throw new Error("Serializable transaction retry limit was reached.");
   }
+}
+
+const stockMovementProductInclude = {
+  product: { select: { uuid: true } },
+} satisfies Prisma.StockMovementInclude;
+
+type PrismaStockMovementWithProduct = Prisma.StockMovementGetPayload<{
+  include: typeof stockMovementProductInclude;
+}>;
+
+function toStockMovementWhere(
+  query: StockMovementListQuery,
+): Prisma.StockMovementWhereInput {
+  const createdAt = {
+    ...(query.from ? { gte: query.from } : {}),
+    ...(query.to ? { lte: query.to } : {}),
+  };
+
+  return {
+    ...(query.type ? { type: query.type } : {}),
+    ...(query.productUuid ? { product: { uuid: query.productUuid } } : {}),
+    ...(query.reference
+      ? {
+          reference: {
+            contains: query.reference,
+            mode: "insensitive",
+          },
+        }
+      : {}),
+    ...(query.from || query.to ? { createdAt } : {}),
+  };
+}
+
+function toDomainStockMovement(
+  movement: PrismaStockMovementWithProduct,
+): StockMovement {
+  return {
+    uuid: movement.uuid,
+    productUuid: movement.product.uuid,
+    type: movement.type,
+    quantity: movement.quantity,
+    previousStock: movement.previousStock,
+    newStock: movement.newStock,
+    reason: movement.reason,
+    reference: movement.reference,
+    createdAt: movement.createdAt,
+  };
 }
 
 function isTransactionConflict(error: unknown): boolean {
