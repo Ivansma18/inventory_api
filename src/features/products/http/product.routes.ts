@@ -70,6 +70,10 @@ const createProductRoute = createRoute({
       content: { "application/json": { schema: errorResponseSchema } },
       description: "Product category not found",
     },
+    500: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "Unexpected product creation failure",
+    },
   },
 });
 

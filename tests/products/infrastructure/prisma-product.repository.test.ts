@@ -36,6 +36,9 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
+  await prisma.inventory.deleteMany({
+    where: { product: { uuid: { in: createdProductUuids } } },
+  });
   await prisma.product.deleteMany({
     where: { uuid: { in: createdProductUuids } },
   });
@@ -95,6 +98,58 @@ describe("PrismaProductRepository", () => {
       repository.findBySkuNormalized(product.skuNormalized),
     ).resolves.toEqual(product);
     await expect(repository.findByUuid(randomUUID())).resolves.toBeNull();
+  });
+
+  it("creates one initial inventory record with zero values", async () => {
+    const product = createTestProduct();
+    createdProductUuids.push(product.uuid);
+
+    await repository.create(product);
+
+    await expect(
+      prisma.inventory.findFirst({
+        where: { product: { uuid: product.uuid } },
+        select: { quantity: true, minimumStock: true },
+      }),
+    ).resolves.toEqual({ quantity: 0, minimumStock: 0 });
+  });
+
+  it("rolls back product creation when its initial inventory cannot be created", async () => {
+    const triggerName = `inventory_creation_failure_${randomUUID().replaceAll("-", "")}`;
+    const functionName = `${triggerName}_function`;
+    const product = createTestProduct();
+    createdProductUuids.push(product.uuid);
+
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE FUNCTION "${functionName}"() RETURNS trigger AS $$
+        BEGIN
+          RAISE EXCEPTION 'Inventory creation failed';
+        END;
+        $$ LANGUAGE plpgsql;
+      `);
+      await prisma.$executeRawUnsafe(`
+        CREATE TRIGGER "${triggerName}"
+        BEFORE INSERT ON "Inventory"
+        FOR EACH ROW EXECUTE FUNCTION "${functionName}"();
+      `);
+
+      await expect(repository.create(product)).rejects.toThrow(
+        "Inventory creation failed",
+      );
+      await expect(
+        prisma.product.findUnique({
+          where: { uuid: product.uuid },
+        }),
+      ).resolves.toBeNull();
+    } finally {
+      await prisma.$executeRawUnsafe(
+        `DROP TRIGGER IF EXISTS "${triggerName}" ON "Inventory"`,
+      );
+      await prisma.$executeRawUnsafe(
+        `DROP FUNCTION IF EXISTS "${functionName}"()`,
+      );
+    }
   });
 
   it("enforces unique normalized SKUs in PostgreSQL", async () => {

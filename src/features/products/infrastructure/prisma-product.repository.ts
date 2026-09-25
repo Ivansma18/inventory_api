@@ -24,6 +24,7 @@ export class PrismaProductRepository implements ProductRepository {
           salePrice: product.salePrice,
           isActive: product.isActive,
           categoryId,
+          inventory: { create: {} },
           createdAt: product.createdAt,
           updatedAt: product.updatedAt,
         },
