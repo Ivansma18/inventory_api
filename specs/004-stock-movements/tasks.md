@@ -9,7 +9,7 @@
 - [x] T3. Crear pruebas de integracion del esquema y la migracion de StockMovement. (RF-12, RF-17, RF-18, RF-32, RF-33)
       Hecho cuando: PostgreSQL crea movimientos con UUID, relacion obligatoria e indices esperados, y no hay escritura de `createdBy`, actualizacion ni eliminacion expuestas por el contrato.
 
-- [ ] T4. Definir el contrato de repositorio atomico, los tipos de intencion de movimiento y los tipos de filtros, orden y paginacion. (RF-13 a RF-18, RF-23 a RF-29, RF-35, RF-41, RF-43, RF-45, RF-48)
+- [x] T4. Definir el contrato de repositorio atomico, los tipos de intencion de movimiento y los tipos de filtros, orden y paginacion. (RF-13 a RF-18, RF-23 a RF-29, RF-35, RF-41, RF-43, RF-45, RF-48)
       Hecho cuando: el dominio expone contratos sin Prisma ni HTTP para registrar movimientos y consultar historiales con orden `createdAt desc`, `uuid asc`.
 
 - [ ] T5. Implementar los casos de uso de entrada, salida y ajuste con fakes y pruebas de aplicacion para normalizacion de motivo y referencia. (RF-1 a RF-16, RF-37, RF-38, RF-40, RF-44, RF-48, RF-51, RF-52)
