@@ -18,7 +18,7 @@
 - [x] T6. Implementar la desactivación lógica de productos y aplicar autenticación a `POST /products`, `PATCH /products/:uuid` y `DELETE /products/:uuid` sin proteger sus rutas de lectura. (RF-17, RF-18, RF-19, RF-21, RF-22, RF-28)
       Hecho cuando: cada escritura responde `401` sin sesión, funciona con sesión válida, `DELETE` conserva el producto con `isActive=false` y devuelve `200 { data: { uuid, isActive: false } }`, y las lecturas continúan públicas sin evaluación de roles.
 
-- [ ] T7. Aplicar autenticación a `POST /inventory/:productUuid/entries`, `POST /inventory/:productUuid/exits` y `POST /inventory/:productUuid/adjustments`, manteniendo públicas las consultas. (RF-20, RF-21, RF-22)
+- [x] T7. Aplicar autenticación a `POST /inventory/:productUuid/entries`, `POST /inventory/:productUuid/exits` y `POST /inventory/:productUuid/adjustments`, manteniendo públicas las consultas. (RF-20, RF-21, RF-22)
       Hecho cuando: las tres operaciones responden `401` sin sesión, funcionan con sesión válida y las consultas de inventario y movimientos continúan públicas.
 
 - [ ] T8. Registrar la feature de autenticación y sus schemas en `app.ts`, documentando los contratos públicos y errores aplicables en OpenAPI/Swagger. (RF-3, RF-5, RF-6, RF-7, RF-8, RF-10, RF-11, RF-13, RF-16, RF-23, RF-27)

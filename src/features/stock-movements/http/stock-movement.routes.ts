@@ -1,3 +1,4 @@
+import type { MiddlewareHandler } from "hono";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 
 import type {
@@ -11,6 +12,7 @@ import {
   StockMovementProductNotFoundError,
 } from "../domain/stock-movement.errors.js";
 import { errorHandler } from "../../../shared/errors/error-handler.js";
+import type { AuthMiddlewareEnv } from "../../../shared/middlewares/auth.middleware.js";
 import { toStockMovementResponse } from "./stock-movement.mapper.js";
 import {
   adjustStockSchema,
@@ -38,6 +40,7 @@ export interface StockMovementCreationHttpService {
 
 interface StockMovementCreationRoutesDependencies {
   service: StockMovementCreationHttpService;
+  authMiddleware?: MiddlewareHandler<AuthMiddlewareEnv>;
 }
 
 const stockMovementCreationResponses = {
@@ -117,8 +120,9 @@ const adjustStockRoute = createRoute({
 
 export function createStockMovementInventoryRoutes({
   service,
-}: StockMovementCreationRoutesDependencies): OpenAPIHono {
-  const routes = new OpenAPIHono({
+  authMiddleware,
+}: StockMovementCreationRoutesDependencies): OpenAPIHono<AuthMiddlewareEnv> {
+  const routes = new OpenAPIHono<AuthMiddlewareEnv>({
     defaultHook: (result, context) => {
       if (!result.success) {
         return context.json(
@@ -133,6 +137,16 @@ export function createStockMovementInventoryRoutes({
       }
     },
   });
+
+  if (authMiddleware) {
+    routes.use("*", async (context, next) => {
+      if (context.req.method !== "POST") {
+        return next();
+      }
+
+      return authMiddleware(context, next);
+    });
+  }
 
   routes.openapi(createStockEntryRoute, async (context) => {
     const { productUuid } = context.req.valid("param");
