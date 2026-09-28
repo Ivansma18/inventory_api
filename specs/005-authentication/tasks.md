@@ -27,7 +27,7 @@
 - [x] T9. Añadir pruebas de ciclo de vida de autenticación con PostgreSQL para registro, login, sesión, sign-out, normalización, duplicados, validaciones y fallos de persistencia. (RF-1 a RF-15, RF-23, RF-24, RF-26, RF-27)
       Hecho cuando: la suite verifica todos los casos del ciclo de vida, no persiste contraseñas en texto plano y los campos desconocidos se ignoran en registro, login y consulta de sesión.
 
-- [ ] T10. Añadir pruebas de sesiones múltiples, cierre de la sesión actual, cookies inválidas y persistencia de otras sesiones activas. (RF-12, RF-13, RF-14, RF-25)
+- [x] T10. Añadir pruebas de sesiones múltiples, cierre de la sesión actual, cookies inválidas y persistencia de otras sesiones activas. (RF-12, RF-13, RF-14, RF-25)
       Hecho cuando: cerrar una sesión invalida solo esa sesión, devuelve `204`, rechaza su cookie posterior y mantiene operativas las demás sesiones del usuario.
 
 - [ ] T11. Ejecutar la validación completa de la fase y comprobar compatibilidad con las rutas existentes, dependencias de capas, formato y documentación. (RF-1 a RF-27)
