@@ -21,7 +21,7 @@
 - [x] T7. Aplicar autenticación a `POST /inventory/:productUuid/entries`, `POST /inventory/:productUuid/exits` y `POST /inventory/:productUuid/adjustments`, manteniendo públicas las consultas. (RF-20, RF-21, RF-22)
       Hecho cuando: las tres operaciones responden `401` sin sesión, funcionan con sesión válida y las consultas de inventario y movimientos continúan públicas.
 
-- [ ] T8. Registrar la feature de autenticación y sus schemas en `app.ts`, documentando los contratos públicos y errores aplicables en OpenAPI/Swagger. (RF-3, RF-5, RF-6, RF-7, RF-8, RF-10, RF-11, RF-13, RF-16, RF-23, RF-27)
+- [x] T8. Registrar la feature de autenticación y sus schemas en `app.ts`, documentando los contratos públicos y errores aplicables en OpenAPI/Swagger. (RF-3, RF-5, RF-6, RF-7, RF-8, RF-10, RF-11, RF-13, RF-16, RF-23, RF-27)
       Hecho cuando: `/openapi.json` y `/docs` exponen las operaciones de autenticación con respuestas públicas limitadas a los campos de la spec y sin tokens ni secretos.
 
 - [ ] T9. Añadir pruebas de ciclo de vida de autenticación con PostgreSQL para registro, login, sesión, sign-out, normalización, duplicados, validaciones y fallos de persistencia. (RF-1 a RF-15, RF-23, RF-24, RF-26, RF-27)

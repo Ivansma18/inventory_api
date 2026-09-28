@@ -2,6 +2,7 @@ import { swaggerUI } from "@hono/swagger-ui";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
 
+import { authRoutes } from "./features/auth/index.js";
 import { categoryRoutes } from "./features/categories/index.js";
 import { inventoryRoutes } from "./features/inventory/index.js";
 import { productRoutes } from "./features/products/index.js";
@@ -34,6 +35,7 @@ app.use("*", cors());
 app.onError(errorHandler);
 
 app.openapi(healthRoute, (context) => context.json({ status: "ok" }, 200));
+app.route("/api/auth", authRoutes);
 app.route("/products", productRoutes);
 app.route("/categories", categoryRoutes);
 app.route("/inventory", inventoryRoutes);

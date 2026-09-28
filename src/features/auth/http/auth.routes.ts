@@ -1,7 +1,15 @@
-import { Hono } from "hono";
+import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import type { Context } from "hono";
 
 import { auth } from "../auth.config.js";
 import { toAuthResponse } from "./auth.mapper.js";
+import {
+  authCredentialsSchema,
+  authEmailAlreadyRegisteredResponseSchema,
+  authUnauthorizedResponseSchema,
+  authValidationErrorResponseSchema,
+  publicAuthResponseSchema,
+} from "./auth.schemas.js";
 
 const signUpPath = "/sign-up/email";
 const signInPath = "/sign-in/email";
@@ -21,10 +29,82 @@ interface AuthResponseBody {
   error?: { message?: string };
 }
 
-export function createAuthRoutes(): Hono {
-  const routes = new Hono();
+const authSuccessResponse = {
+  content: { "application/json": { schema: publicAuthResponseSchema } },
+};
+const authValidationErrorResponse = {
+  content: {
+    "application/json": { schema: authValidationErrorResponseSchema },
+  },
+};
+const authUnauthorizedResponse = {
+  content: { "application/json": { schema: authUnauthorizedResponseSchema } },
+};
 
-  routes.all("/*", async (context) => {
+const signUpRoute = createRoute({
+  method: "post",
+  path: signUpPath,
+  tags: ["Authentication"],
+  request: {
+    body: {
+      content: { "application/json": { schema: authCredentialsSchema } },
+      required: true,
+    },
+  },
+  responses: {
+    201: { ...authSuccessResponse, description: "Account registered" },
+    400: { ...authValidationErrorResponse, description: "Invalid credentials" },
+    409: {
+      content: {
+        "application/json": {
+          schema: authEmailAlreadyRegisteredResponseSchema,
+        },
+      },
+      description: "Email already registered",
+    },
+  },
+});
+
+const signInRoute = createRoute({
+  method: "post",
+  path: signInPath,
+  tags: ["Authentication"],
+  request: {
+    body: {
+      content: { "application/json": { schema: authCredentialsSchema } },
+      required: true,
+    },
+  },
+  responses: {
+    200: { ...authSuccessResponse, description: "Session started" },
+    400: { ...authValidationErrorResponse, description: "Invalid credentials" },
+    401: { ...authUnauthorizedResponse, description: "Invalid credentials" },
+  },
+});
+
+const getSessionRoute = createRoute({
+  method: "get",
+  path: sessionPath,
+  tags: ["Authentication"],
+  responses: {
+    200: { ...authSuccessResponse, description: "Current session" },
+    401: { ...authUnauthorizedResponse, description: "Session is invalid" },
+  },
+});
+
+const signOutRoute = createRoute({
+  method: "post",
+  path: signOutPath,
+  tags: ["Authentication"],
+  responses: {
+    204: { description: "Current session closed" },
+  },
+});
+
+export function createAuthRoutes(): OpenAPIHono {
+  const routes = new OpenAPIHono();
+
+  const handleAuth = async (context: Context) => {
     const response = await auth.handler(context.req.raw);
     const path = new URL(context.req.url).pathname;
 
@@ -70,7 +150,16 @@ export function createAuthRoutes(): Hono {
     }
 
     return response;
-  });
+  };
+
+  routes.openAPIRegistry.registerPath(signUpRoute);
+  routes.openAPIRegistry.registerPath(signInRoute);
+  routes.openAPIRegistry.registerPath(getSessionRoute);
+  routes.openAPIRegistry.registerPath(signOutRoute);
+  routes.post(signUpPath, handleAuth);
+  routes.post(signInPath, handleAuth);
+  routes.get(sessionPath, handleAuth);
+  routes.post(signOutPath, handleAuth);
 
   return routes;
 }
