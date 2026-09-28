@@ -24,7 +24,7 @@
 - [x] T8. Registrar la feature de autenticación y sus schemas en `app.ts`, documentando los contratos públicos y errores aplicables en OpenAPI/Swagger. (RF-3, RF-5, RF-6, RF-7, RF-8, RF-10, RF-11, RF-13, RF-16, RF-23, RF-27)
       Hecho cuando: `/openapi.json` y `/docs` exponen las operaciones de autenticación con respuestas públicas limitadas a los campos de la spec y sin tokens ni secretos.
 
-- [ ] T9. Añadir pruebas de ciclo de vida de autenticación con PostgreSQL para registro, login, sesión, sign-out, normalización, duplicados, validaciones y fallos de persistencia. (RF-1 a RF-15, RF-23, RF-24, RF-26, RF-27)
+- [x] T9. Añadir pruebas de ciclo de vida de autenticación con PostgreSQL para registro, login, sesión, sign-out, normalización, duplicados, validaciones y fallos de persistencia. (RF-1 a RF-15, RF-23, RF-24, RF-26, RF-27)
       Hecho cuando: la suite verifica todos los casos del ciclo de vida, no persiste contraseñas en texto plano y los campos desconocidos se ignoran en registro, login y consulta de sesión.
 
 - [ ] T10. Añadir pruebas de sesiones múltiples, cierre de la sesión actual, cookies inválidas y persistencia de otras sesiones activas. (RF-12, RF-13, RF-14, RF-25)

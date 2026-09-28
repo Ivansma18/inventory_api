@@ -26,7 +26,8 @@ interface AuthResponseBody {
     createdAt: Date | string;
   };
   message?: string;
-  error?: { message?: string };
+  code?: string;
+  error?: { code?: string; message?: string };
 }
 
 const authSuccessResponse = {
@@ -203,6 +204,21 @@ function mapAuthError(
   body: AuthResponseBody | null,
 ): Response {
   const message = String(body?.message ?? body?.error?.message ?? "");
+  const errorCode = String(body?.code ?? body?.error?.code ?? "");
+
+  if (
+    status >= 500 ||
+    /internal|server|database|failed to create user/i.test(
+      `${errorCode} ${message}`,
+    )
+  ) {
+    return errorResponse(
+      500,
+      "INTERNAL_ERROR",
+      "An unexpected error occurred.",
+    );
+  }
+
   if (
     path.endsWith(signUpPath) &&
     (status === 409 || /already exists|already registered/i.test(message))
