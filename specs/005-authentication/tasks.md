@@ -9,7 +9,7 @@
 - [x] T3. Definir los tipos públicos y mappers de autenticación para exponer únicamente `user.id`, `user.email`, `session.id` y `session.createdAt`. (RF-6, RF-7, RF-10, RF-23, RF-27)
       Hecho cuando: las pruebas de serialización demuestran que las respuestas no contienen contraseña, token, secreto, `expiresAt` ni campos adicionales de sesión.
 
-- [x] T4. Montar el handler público de Better Auth para registro, login, consulta de sesión y sign-out, con normalización de cuerpos, códigos `201`, `200`, `204`, `400`, `401` y `409`. (RF-1 a RF-15, RF-23, RF-26, RF-27)
+- [x] T4. Montar el handler público de Better Auth para registro con `name`, email y contraseña; login, consulta de sesión y sign-out, con normalización de cuerpos, códigos `201`, `200`, `204`, `400`, `401` y `409`. (RF-1 a RF-15, RF-23, RF-26, RF-27)
       Hecho cuando: las pruebas HTTP cubren el ciclo completo, email duplicado con `409 EMAIL_ALREADY_REGISTERED`, credenciales inválidas con `401`, sign-out idempotente con `204` y cookies emitidas correctamente.
 
 - [x] T5. Implementar el middleware transversal que lea y valide la cookie, inyecte la identidad pública en el contexto y traduzca sesiones ausentes o inválidas a `401 UNAUTHORIZED`. (RF-9, RF-11, RF-16, RF-21, RF-25)
@@ -21,16 +21,16 @@
 - [x] T7. Aplicar autenticación a `POST /inventory/:productUuid/entries`, `POST /inventory/:productUuid/exits` y `POST /inventory/:productUuid/adjustments`, manteniendo públicas las consultas. (RF-20, RF-21, RF-22)
       Hecho cuando: las tres operaciones responden `401` sin sesión, funcionan con sesión válida y las consultas de inventario y movimientos continúan públicas.
 
-- [x] T8. Registrar la feature de autenticación y sus schemas en `app.ts`, documentando los contratos públicos y errores aplicables en OpenAPI/Swagger. (RF-3, RF-5, RF-6, RF-7, RF-8, RF-10, RF-11, RF-13, RF-16, RF-23, RF-27)
-      Hecho cuando: `/openapi.json` y `/docs` exponen las operaciones de autenticación con respuestas públicas limitadas a los campos de la spec y sin tokens ni secretos.
+- [x] T8. Registrar la feature de autenticación y sus schemas en `app.ts`, documentando los contratos públicos y errores aplicables en OpenAPI/Swagger. (RF-1, RF-2, RF-3, RF-5, RF-6, RF-7, RF-8, RF-10, RF-11, RF-13, RF-16, RF-23, RF-27)
+      Hecho cuando: `/openapi.json` y `/docs` exponen el registro con `name`, email y contraseña, las respuestas públicas limitadas a los campos de la spec y sin tokens ni secretos.
 
-- [x] T9. Añadir pruebas de ciclo de vida de autenticación con PostgreSQL para registro, login, sesión, sign-out, normalización, duplicados, validaciones y fallos de persistencia. (RF-1 a RF-15, RF-23, RF-24, RF-26, RF-27)
-      Hecho cuando: la suite verifica todos los casos del ciclo de vida, no persiste contraseñas en texto plano y los campos desconocidos se ignoran en registro, login y consulta de sesión.
+- [x] T9. Añadir pruebas de ciclo de vida de autenticación con PostgreSQL para registro con nombre obligatorio, login, sesión, sign-out, normalización, duplicados, validaciones y fallos de persistencia. (RF-1 a RF-15, RF-23, RF-24, RF-26, RF-27)
+      Hecho cuando: la suite verifica nombre válido, ausente y vacío; el ciclo de vida, ausencia de contraseñas en texto plano y que los campos desconocidos se ignoran en registro, login y consulta de sesión.
 
 - [x] T10. Añadir pruebas de sesiones múltiples, cierre de la sesión actual, cookies inválidas y persistencia de otras sesiones activas. (RF-12, RF-13, RF-14, RF-25)
       Hecho cuando: cerrar una sesión invalida solo esa sesión, devuelve `204`, rechaza su cookie posterior y mantiene operativas las demás sesiones del usuario.
 
-- [ ] T11. Ejecutar la validación completa de la fase y comprobar compatibilidad con las rutas existentes, dependencias de capas, formato y documentación. (RF-1 a RF-27)
+- [x] T11. Ejecutar la validación completa de la fase y comprobar compatibilidad con las rutas existentes, dependencias de capas, formato y documentación. (RF-1 a RF-27)
       Hecho cuando: pasan `npm test`, `npm run typecheck`, `npm run lint`, `npm run format`, `git diff --check`, y se verifica que no se introducen roles, permisos ni protección accidental de lecturas.
 
 ## Orden y dependencias
@@ -53,8 +53,8 @@
 
 | RF    | Tarea           | Evidencia                                                                          |
 | ----- | --------------- | ---------------------------------------------------------------------------------- |
-| RF-1  | T1, T4, T9      | Registro válido crea usuario y sesión.                                             |
-| RF-2  | T3, T4, T9      | Registro reconoce únicamente email y contraseña.                                   |
+| RF-1  | T1, T4, T8, T9  | Registro válido con nombre crea usuario y sesión.                                  |
+| RF-2  | T4, T8, T9      | Registro reconoce únicamente `name`, email y contraseña.                           |
 | RF-3  | T2, T4, T9      | Email inválido responde `400` después de normalización.                            |
 | RF-4  | T2, T4, T9      | Contraseña menor de 8 caracteres responde `400`.                                   |
 | RF-5  | T1, T4, T9      | Email normalizado duplicado responde `409 EMAIL_ALREADY_REGISTERED`.               |

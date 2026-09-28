@@ -23,13 +23,28 @@ export const publicAuthResponseSchema = z
   })
   .openapi("PublicAuthResponse");
 
+const authEmailSchema = z
+  .string()
+  .email()
+  .openapi({ example: "user@example.com" });
+const authPasswordSchema = z
+  .string()
+  .min(8)
+  .openapi({ example: "password123" });
+
 export const authCredentialsSchema = z
-  .object({
-    email: z.string().email().openapi({ example: "user@example.com" }),
-    password: z.string().min(8).openapi({ example: "password123" }),
-  })
+  .object({ email: authEmailSchema, password: authPasswordSchema })
   .strip()
   .openapi("AuthCredentials");
+
+export const authRegistrationSchema = z
+  .object({
+    name: z.string().openapi({ example: "Jane Doe" }),
+    email: authEmailSchema,
+    password: authPasswordSchema,
+  })
+  .strip()
+  .openapi("AuthRegistration");
 
 function authErrorSchema(name: string, code: string) {
   return z

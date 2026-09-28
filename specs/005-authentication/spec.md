@@ -2,7 +2,7 @@
 
 ## Contexto y objetivo
 
-La API necesita identificar quién realiza cada petición antes de permitir operaciones de escritura. Esta fase incorpora registro e inicio de sesión mediante email y contraseña, consulta y cierre de sesión, además de proteger las operaciones que modifican productos o inventario. La autorización por roles y permisos queda fuera de esta fase.
+La API necesita identificar quién realiza cada petición antes de permitir operaciones de escritura. Esta fase incorpora registro mediante nombre, email y contraseña; inicio de sesión mediante email y contraseña; consulta y cierre de sesión; además de proteger las operaciones que modifican productos o inventario. La autorización por roles y permisos queda fuera de esta fase.
 
 ## Usuarios / actores
 
@@ -13,7 +13,7 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 
 ## Historias de usuario
 
-- H1: Como usuario nuevo quiero registrarme con email y contraseña para crear una cuenta.
+- H1: Como usuario nuevo quiero registrarme con nombre, email y contraseña para crear una cuenta.
 - H2: Como usuario registrado quiero iniciar sesión para obtener una sesión autenticada.
 - H3: Como usuario autenticado quiero consultar mi sesión actual para conocer mi identidad.
 - H4: Como usuario autenticado quiero cerrar sesión para invalidar mi sesión.
@@ -21,8 +21,8 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 
 ## Requisitos funcionales
 
-- RF-1: CUANDO un usuario envíe un email y una contraseña válidos para registrarse, EL SISTEMA creará una cuenta autenticable.
-- RF-2: EL SISTEMA aceptará únicamente email y contraseña durante el registro.
+- RF-1: CUANDO un usuario envíe un nombre, email y contraseña válidos para registrarse, EL SISTEMA creará una cuenta autenticable.
+- RF-2: EL SISTEMA aceptará únicamente `name`, email y contraseña durante el registro; `name` será un texto obligatorio sin reglas adicionales.
 - RF-3: SI el email, después de eliminar espacios exteriores y convertirlo a minúsculas, no tiene un formato válido, ENTONCES EL SISTEMA rechazará el registro con `400`.
 - RF-4: SI la contraseña contiene menos de 8 caracteres, ENTONCES EL SISTEMA rechazará el registro con `400`.
 - RF-5: SI el email normalizado ya está registrado, ENTONCES EL SISTEMA rechazará el registro con `409` y código `EMAIL_ALREADY_REGISTERED` sin crear una segunda cuenta.
@@ -68,6 +68,8 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 ## Casos límite
 
 - Registro con email vacío.
+- Registro sin nombre.
+- Registro con nombre vacío.
 - Registro con email en mayúsculas.
 - Registro con espacios exteriores en el email.
 - Registro con contraseña vacía.
@@ -120,7 +122,7 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 ## Criterios de finalización
 
 - Todos los RF están implementados y probados.
-- Un usuario puede registrarse con email y contraseña.
+- Un usuario puede registrarse con nombre, email y contraseña.
 - Un usuario registrado puede iniciar y cerrar sesión con las respuestas definidas.
 - La sesión actual puede consultarse con una respuesta `200`, `user.id`, `user.email` y la sesión activa.
 - Las operaciones protegidas rechazan solicitudes sin sesión con `401 UNAUTHORIZED` y el formato estándar.

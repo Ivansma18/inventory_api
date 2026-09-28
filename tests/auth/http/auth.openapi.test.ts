@@ -51,6 +51,21 @@ describe("Authentication OpenAPI contract", () => {
     expect(document.paths["/api/auth/sign-out"].post.responses).toMatchObject({
       204: expect.anything(),
     });
+    expect(document.components.schemas.AuthRegistration).toMatchObject({
+      required: ["name", "email", "password"],
+      properties: {
+        name: { type: "string" },
+        email: { type: "string", format: "email" },
+        password: { type: "string", minLength: 8 },
+      },
+    });
+    expect(document.components.schemas.AuthCredentials).toMatchObject({
+      required: ["email", "password"],
+      properties: {
+        email: { type: "string", format: "email" },
+        password: { type: "string", minLength: 8 },
+      },
+    });
 
     const responseSchema = document.components.schemas.PublicAuthResponse;
     expect(responseSchema).toMatchObject({

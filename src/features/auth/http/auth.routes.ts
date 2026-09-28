@@ -6,6 +6,7 @@ import { toAuthResponse } from "./auth.mapper.js";
 import {
   authCredentialsSchema,
   authEmailAlreadyRegisteredResponseSchema,
+  authRegistrationSchema,
   authUnauthorizedResponseSchema,
   authValidationErrorResponseSchema,
   publicAuthResponseSchema,
@@ -48,7 +49,7 @@ const signUpRoute = createRoute({
   tags: ["Authentication"],
   request: {
     body: {
-      content: { "application/json": { schema: authCredentialsSchema } },
+      content: { "application/json": { schema: authRegistrationSchema } },
       required: true,
     },
   },

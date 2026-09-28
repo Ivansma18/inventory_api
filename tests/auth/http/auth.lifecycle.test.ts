@@ -150,6 +150,39 @@ describe("Authentication lifecycle with PostgreSQL", () => {
     });
   });
 
+  it("requires a name field but accepts an empty name without additional validation rules", async () => {
+    const [missingName, emptyName] = await Promise.all([
+      app.request("/api/auth/sign-up/email", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          email: `${randomUUID()}@example.com`,
+          password,
+        }),
+      }),
+      app.request("/api/auth/sign-up/email", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: "",
+          email: `${randomUUID()}@example.com`,
+          password,
+        }),
+      }),
+    ]);
+
+    expect(missingName.status).toBe(400);
+    expect(emptyName.status).toBe(201);
+    const emptyNameBody = await emptyName.json();
+    createdUserIds.push(emptyNameBody.data.user.id);
+    await expect(
+      prisma.user.findUnique({
+        where: { id: emptyNameBody.data.user.id },
+        select: { name: true },
+      }),
+    ).resolves.toEqual({ name: "" });
+  });
+
   it("returns the standard internal error when registration persistence fails", async () => {
     const suffix = randomUUID().replaceAll("-", "");
     const triggerName = `auth_registration_failure_${suffix}`;
