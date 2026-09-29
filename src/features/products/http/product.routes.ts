@@ -49,6 +49,7 @@ const createProductRoute = createRoute({
   method: "post",
   path: "/",
   tags: ["Products"],
+  security: [{ sessionCookie: [] }],
   request: {
     body: {
       content: {
@@ -65,6 +66,10 @@ const createProductRoute = createRoute({
     400: {
       content: { "application/json": { schema: errorResponseSchema } },
       description: "Invalid product data",
+    },
+    401: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "Authentication required",
     },
     409: {
       content: { "application/json": { schema: errorResponseSchema } },
@@ -124,6 +129,7 @@ const updateProductRoute = createRoute({
   method: "patch",
   path: "/{uuid}",
   tags: ["Products"],
+  security: [{ sessionCookie: [] }],
   request: {
     params: productParamsSchema,
     body: {
@@ -142,6 +148,10 @@ const updateProductRoute = createRoute({
       content: { "application/json": { schema: errorResponseSchema } },
       description: "Invalid product data or UUID",
     },
+    401: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "Authentication required",
+    },
     404: {
       content: { "application/json": { schema: errorResponseSchema } },
       description: "Product not found",
@@ -158,6 +168,7 @@ const deleteProductRoute = createRoute({
   method: "delete",
   path: "/{uuid}",
   tags: ["Products"],
+  security: [{ sessionCookie: [] }],
   request: { params: productParamsSchema },
   responses: {
     200: {
@@ -171,6 +182,10 @@ const deleteProductRoute = createRoute({
     400: {
       content: { "application/json": { schema: errorResponseSchema } },
       description: "Invalid product UUID",
+    },
+    401: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "Authentication required",
     },
     404: {
       content: { "application/json": { schema: errorResponseSchema } },

@@ -7,7 +7,10 @@ import {
   updateProduct,
   type Product,
 } from "../../../src/features/products/domain/product.entity.js";
-import { ProductCategoryAssignmentConflictError } from "../../../src/features/products/domain/product.errors.js";
+import {
+  ProductCategoryAssignmentConflictError,
+  ProductSkuAlreadyExistsError,
+} from "../../../src/features/products/domain/product.errors.js";
 import {
   productListTieBreakers,
   productSortFields,
@@ -162,9 +165,9 @@ describe("PrismaProductRepository", () => {
 
     await repository.create(product);
 
-    await expect(repository.create(duplicate)).rejects.toMatchObject({
-      code: "P2002",
-    });
+    await expect(repository.create(duplicate)).rejects.toThrow(
+      ProductSkuAlreadyExistsError,
+    );
   });
 
   it("updates persisted products without losing nullable fields or state", async () => {
@@ -188,6 +191,23 @@ describe("PrismaProductRepository", () => {
     );
     await expect(repository.findByUuid(product.uuid)).resolves.toEqual(
       updatedProduct,
+    );
+  });
+
+  it("maps a unique SKU conflict during a direct repository update", async () => {
+    const first = createTestProduct({ sku: "UNIQUE-SKU-A" });
+    const second = createTestProduct({ sku: "UNIQUE-SKU-B" });
+    createdProductUuids.push(first.uuid, second.uuid);
+    await Promise.all([repository.create(first), repository.create(second)]);
+
+    const duplicateSku = updateProduct(
+      second,
+      { sku: first.sku },
+      second.updatedAt,
+    );
+
+    await expect(repository.update(duplicateSku)).rejects.toThrow(
+      ProductSkuAlreadyExistsError,
     );
   });
 

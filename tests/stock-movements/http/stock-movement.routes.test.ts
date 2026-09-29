@@ -8,6 +8,7 @@ import type {
 import type { StockMovement } from "../../../src/features/stock-movements/domain/stock-movement.entity.js";
 import {
   InsufficientStockError,
+  InvalidStockAdjustmentReasonError,
   StockMovementInventoryNotFoundError,
   StockMovementProductNotFoundError,
 } from "../../../src/features/stock-movements/domain/stock-movement.errors.js";
@@ -149,8 +150,15 @@ describe("Stock movement creation routes", () => {
         },
       }),
     });
+    const invalidReasonApp = createStockMovementInventoryRoutes({
+      service: createService({
+        adjustStock: async () => {
+          throw new InvalidStockAdjustmentReasonError();
+        },
+      }),
+    });
 
-    const [insufficient, missingProduct] = await Promise.all([
+    const [insufficient, missingProduct, invalidReason] = await Promise.all([
       insufficientApp.request(
         `/${productUuid}/exits`,
         jsonRequest({ quantity: 10 }),
@@ -158,6 +166,10 @@ describe("Stock movement creation routes", () => {
       missingProductApp.request(
         `/${productUuid}/entries`,
         jsonRequest({ quantity: 1 }),
+      ),
+      invalidReasonApp.request(
+        `/${productUuid}/adjustments`,
+        jsonRequest({ quantity: 1, reason: "Inventory count" }),
       ),
     ]);
 
@@ -170,6 +182,13 @@ describe("Stock movement creation routes", () => {
       error: {
         code: "STOCK_MOVEMENT_PRODUCT_NOT_FOUND",
         message: "Stock movement product was not found.",
+      },
+    });
+    expect(invalidReason.status).toBe(400);
+    await expect(invalidReason.json()).resolves.toEqual({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Stock adjustment reason must not be empty.",
       },
     });
   });

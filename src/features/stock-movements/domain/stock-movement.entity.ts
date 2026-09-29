@@ -1,6 +1,7 @@
 import {
   InsufficientStockError,
   InvalidStockAdjustmentQuantityError,
+  InvalidStockAdjustmentReasonError,
   InvalidStockMovementPreviousStockError,
   InvalidStockMovementQuantityError,
 } from "./stock-movement.errors.js";
@@ -56,7 +57,13 @@ export function createStockAdjustment(
   validatePreviousStock(data.previousStock);
   const quantity = validateNonNegativeQuantity(data.quantity);
 
-  return createMovement(data, "ADJUSTMENT", quantity, quantity, data.reason);
+  return createMovement(
+    data,
+    "ADJUSTMENT",
+    quantity,
+    quantity,
+    validateAdjustmentReason(data.reason),
+  );
 }
 
 function createMovement(
@@ -93,6 +100,14 @@ function validateNonNegativeQuantity(quantity: number): number {
   }
 
   return quantity;
+}
+
+function validateAdjustmentReason(reason: string): string {
+  if (typeof reason !== "string" || reason.trim() === "") {
+    throw new InvalidStockAdjustmentReasonError();
+  }
+
+  return reason.trim();
 }
 
 function validatePreviousStock(previousStock: number): number {

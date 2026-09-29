@@ -9,6 +9,7 @@ import type {
 import type { StockMovement } from "../domain/stock-movement.entity.js";
 import {
   InsufficientStockError,
+  InvalidStockAdjustmentReasonError,
   StockMovementProductNotFoundError,
 } from "../domain/stock-movement.errors.js";
 import { errorHandler } from "../../../shared/errors/error-handler.js";
@@ -56,6 +57,12 @@ const stockMovementCreationResponses = {
     },
     description: "Invalid product UUID or movement data",
   },
+  401: {
+    content: {
+      "application/json": { schema: stockMovementErrorResponseSchema },
+    },
+    description: "Authentication required",
+  },
   404: {
     content: {
       "application/json": { schema: stockMovementErrorResponseSchema },
@@ -80,6 +87,7 @@ const createStockEntryRoute = createRoute({
   method: "post",
   path: "/{productUuid}/entries",
   tags: ["Stock Movements"],
+  security: [{ sessionCookie: [] }],
   request: {
     params: stockMovementParamsSchema,
     body: {
@@ -94,6 +102,7 @@ const createStockExitRoute = createRoute({
   method: "post",
   path: "/{productUuid}/exits",
   tags: ["Stock Movements"],
+  security: [{ sessionCookie: [] }],
   request: {
     params: stockMovementParamsSchema,
     body: {
@@ -108,6 +117,7 @@ const adjustStockRoute = createRoute({
   method: "post",
   path: "/{productUuid}/adjustments",
   tags: ["Stock Movements"],
+  security: [{ sessionCookie: [] }],
   request: {
     params: stockMovementParamsSchema,
     body: {
@@ -176,12 +186,21 @@ export function createStockMovementInventoryRoutes({
     return context.json({ data: toStockMovementResponse(movement) }, 201);
   });
   routes.onError((error, context) => {
-    if (error instanceof InsufficientStockError) {
+    if (
+      error instanceof InsufficientStockError ||
+      error instanceof InvalidStockAdjustmentReasonError
+    ) {
       return context.json(
         {
-          error: { code: "INSUFFICIENT_STOCK", message: error.message },
+          error: {
+            code:
+              error instanceof InsufficientStockError
+                ? "INSUFFICIENT_STOCK"
+                : "VALIDATION_ERROR",
+            message: error.message,
+          },
         },
-        409,
+        error instanceof InsufficientStockError ? 409 : 400,
       );
     }
 

@@ -12,6 +12,13 @@ export class InvalidStockAdjustmentQuantityError extends Error {
   }
 }
 
+export class InvalidStockAdjustmentReasonError extends Error {
+  constructor() {
+    super("Stock adjustment reason must not be empty.");
+    this.name = "InvalidStockAdjustmentReasonError";
+  }
+}
+
 export class InvalidStockMovementPreviousStockError extends Error {
   constructor() {
     super("Previous stock must be a non-negative integer.");

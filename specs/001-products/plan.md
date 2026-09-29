@@ -2,7 +2,7 @@
 
 ## Contexto
 
-Este plan implementará la primera capacidad de negocio: catálogo de productos. La fuente de verdad es `spec.md`; no tiene dudas abiertas. Debe respetar la Fase 1 de `docs/ruta.md`: una feature `products` con un servicio de aplicación único, cuatro endpoints (`POST`, `GET` de colección, `GET` individual y `PATCH`) y sin autenticación ni eliminación física.
+Este plan implementará la primera capacidad de negocio: catálogo de productos. La fuente de verdad es `spec.md`; no tiene dudas abiertas. La Fase 1 evoluciona con Categories y Authentication: la feature mantiene un servicio de aplicación único, expone cinco endpoints (`POST`, `GET` de colección, `GET` individual, `PATCH` y `DELETE`), exige una categoría activa para crear productos y protege sus operaciones de escritura mediante sesión, sin eliminación física.
 
 La implementación mantendrá las fronteras de `docs/constitution.md`: dominio sin frameworks, aplicación sin Prisma ni HTTP, repositorio Prisma en infraestructura y validación, OpenAPI, serialización y traducción de errores en HTTP. `app.ts` únicamente registrará la feature y conservará la configuración transversal existente.
 
@@ -14,13 +14,13 @@ La implementación mantendrá las fronteras de `docs/constitution.md`: dominio s
 | `src/features/products/domain/product.entity.ts`                    | Representar el producto y asegurar las invariantes puras de SKU, nombre y precios.                                                       | RF-1 a RF-5, RF-7, RF-19 a RF-21, RF-29          |
 | `src/features/products/domain/product.repository.ts`                | Definir entradas y salidas de persistencia: crear, buscar por UUID/SKU normalizado, actualizar y listar con filtros, orden y paginación. | RF-6, RF-8 a RF-15, RF-22 a RF-26                |
 | `src/features/products/domain/product.errors.ts`                    | Declarar errores de producto sin códigos HTTP.                                                                                           | RF-6, RF-11, RF-28                               |
-| `src/features/products/application/product.service.ts`              | Orquestar creación, consulta, listado y actualización mediante el contrato de repositorio.                                               | RF-1 a RF-32                                     |
+| `src/features/products/application/product.service.ts`              | Orquestar creación, consulta, listado, actualización y desactivación lógica mediante los contratos de repositorio y categoría.           | RF-1 a RF-33                                     |
 | `src/features/products/infrastructure/prisma-product.repository.ts` | Implementar el contrato con Prisma y mapear entre modelo de persistencia y tipos de dominio/aplicación.                                  | RF-1, RF-6, RF-8 a RF-15, RF-22 a RF-26          |
 | `src/features/products/http/product.schemas.ts`                     | Definir schemas Zod/OpenAPI de cuerpos, parámetros, query y respuestas.                                                                  | RF-1 a RF-5, RF-18, RF-22 a RF-27, RF-29 a RF-32 |
 | `src/features/products/http/product.mapper.ts`                      | Convertir resultados de aplicación en respuestas HTTP sin exponer campos internos de persistencia.                                       | RF-10, RF-14, RF-16, RF-29                       |
-| `src/features/products/http/product.routes.ts`                      | Declarar rutas, validar solicitudes, delegar en el servicio y traducir errores de producto a HTTP.                                       | RF-1 a RF-32                                     |
-| `src/features/products/index.ts` y `src/app.ts`                     | Componer repositorio, servicio y rutas; registrar `/products` sin iniciar el servidor.                                                   | RF-1 a RF-32                                     |
-| `tests/products/**/*.test.ts`                                       | Probar reglas puras, casos de uso, repositorio Prisma y contrato HTTP.                                                                   | RF-1 a RF-32                                     |
+| `src/features/products/http/product.routes.ts`                      | Declarar rutas, validar solicitudes, exigir sesión en escrituras, delegar en el servicio y traducir errores de producto a HTTP.          | RF-1 a RF-33                                     |
+| `src/features/products/index.ts` y `src/app.ts`                     | Componer repositorio, servicio y rutas; registrar `/products` sin iniciar el servidor.                                                   | RF-1 a RF-33                                     |
+| `tests/products/**/*.test.ts`                                       | Probar reglas puras, casos de uso, repositorio Prisma y contratos HTTP, incluidos categoría y autenticación.                            | RF-1 a RF-33                                     |
 
 ## Modelo de datos y contratos
 
@@ -50,12 +50,13 @@ Se publicarán estos contratos bajo `/products`:
 
 | Operación               | Entrada                                                                                          | Éxito                             | Errores documentados |
 | ----------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------- | -------------------- |
-| `POST /products`        | SKU, nombre y precios requeridos; descripción opcional; propiedades no reconocidas se descartan. | `201` con `{ data: product }`.    | `400`, `409`         |
+| `POST /products`        | SKU, nombre, precios y `categoryUuid` activo requeridos; descripción opcional; propiedades no reconocidas se descartan. | `201` con `{ data: product }`.    | `400`, `401`, `404`, `409` |
 | `GET /products`         | `page`, `limit`, `search`, `isActive`, `sort`, `order`.                                          | `200` con `{ data, pagination }`. | `400`                |
 | `GET /products/:uuid`   | UUID de ruta.                                                                                    | `200` con `{ data: product }`.    | `400`, `404`         |
-| `PATCH /products/:uuid` | Campos reconocidos opcionales; al menos uno debe permanecer tras descartar los no reconocidos.   | `200` con `{ data: product }`.    | `400`, `404`, `409`  |
+| `PATCH /products/:uuid` | Campos reconocidos opcionales; al menos uno debe permanecer tras descartar los no reconocidos.   | `200` con `{ data: product }`.    | `400`, `401`, `404`, `409`  |
+| `DELETE /products/:uuid` | UUID de ruta. | `200` con `{ data: { uuid, isActive: false } }`. | `400`, `401`, `404` |
 
-La representación pública de `product` incluirá `uuid`, `sku`, `name`, `description`, `purchasePrice`, `salePrice`, `isActive`, `createdAt` y `updatedAt`. La forma exacta de decimal y timestamp será uniforme en todos los schemas de respuesta y se verificará contra el documento OpenAPI.
+La representación pública de `product` incluirá `uuid`, `sku`, `name`, `description`, `purchasePrice`, `salePrice`, `categoryUuid`, `isActive`, `createdAt` y `updatedAt`. La forma exacta de decimal y timestamp será uniforme en todos los schemas de respuesta y se verificará contra el documento OpenAPI.
 
 La capa HTTP eliminará propiedades no reconocidas antes de entregar la entrada al servicio. Para `PATCH`, comprobará después que exista al menos un campo reconocido; para `POST`, el schema seguirá exigiendo los campos obligatorios. Los errores de validación se devolverán como `400`; `ProductNotFoundError` se traducirá a `404` y el conflicto de SKU a `409`. El manejador genérico existente conservará el tratamiento de errores inesperados como `500`.
 
@@ -65,7 +66,7 @@ La capa HTTP eliminará propiedades no reconocidas antes de entregar la entrada 
 
 - Elegida: usar `domain/`, `application/product.service.ts`, `infrastructure/`, `http/` e `index.ts`, sin separar todavía cada caso de uso en archivos distintos.
 - Descartada: crear un use case, DTO y mapper por cada operación desde el inicio. Añadiría archivos y abstracciones sin necesidad en Fase 1.
-- RF cubiertos: RF-1 a RF-32.
+- RF cubiertos: RF-1 a RF-33.
 
 ### Unicidad de SKU mediante columna normalizada
 
@@ -122,7 +123,7 @@ La capa HTTP eliminará propiedades no reconocidas antes de entregar la entrada 
 | RF-25, RF-26               | Ordenar por cada campo permitido, ambas direcciones y empates.                                | Integración Prisma y HTTP                             | Orden principal y desempates `createdAt`/UUID estables; campo inválido responde `400`. |
 | RF-30, RF-32               | Crear con campos adicionales junto con todos los requeridos.                                  | HTTP                                                  | Producto creado; propiedades extra no se persisten ni se exponen.                      |
 | RF-31                      | Actualizar solo con campos adicionales.                                                       | HTTP                                                  | Respuesta `400` y producto sin modificaciones.                                         |
-| Contrato OpenAPI           | Consultar `/openapi.json` tras registrar Products.                                            | HTTP                                                  | Los cuatro endpoints, schemas y códigos de respuesta están publicados.                 |
+| RF-33 y contrato OpenAPI   | Consultar `/openapi.json` y desactivar un producto con sesión válida.                         | HTTP                                                  | Los cinco endpoints, incluido `DELETE`, sus códigos `401` y la desactivación lógica están publicados y funcionan. |
 | Regresión                  | Mantener pruebas existentes de salud, Swagger y manejo de errores inesperados.                | HTTP                                                  | `GET /health`, `/docs` y `500` transversal continúan funcionando.                      |
 
 Las pruebas de dominio y aplicación no usarán Hono, Prisma ni PostgreSQL. El repositorio Prisma se verificará contra una base de datos de prueba configurada para integración; los contratos HTTP usarán `app.request` y dobles de repositorio/servicio cuando no necesiten persistencia real.

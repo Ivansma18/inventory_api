@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   InsufficientStockError,
   InvalidStockAdjustmentQuantityError,
+  InvalidStockAdjustmentReasonError,
   InvalidStockMovementPreviousStockError,
   InvalidStockMovementQuantityError,
 } from "../../../src/features/stock-movements/domain/stock-movement.errors.js";
@@ -78,6 +79,32 @@ describe("StockMovement", () => {
       reason: "Inventory count",
       reference: null,
     });
+  });
+
+  it("trims a valid adjustment reason and rejects an empty one", () => {
+    expect(
+      createStockAdjustment({
+        uuid: "10ba80e6-e5e5-4459-8093-799eac7e37b5",
+        productUuid,
+        quantity: 3,
+        previousStock: 6,
+        reason: "  Inventory count  ",
+        reference: null,
+        createdAt,
+      }).reason,
+    ).toBe("Inventory count");
+
+    expect(() =>
+      createStockAdjustment({
+        uuid: "10ba80e6-e5e5-4459-8093-799eac7e37b5",
+        productUuid,
+        quantity: 3,
+        previousStock: 6,
+        reason: "   ",
+        reference: null,
+        createdAt,
+      }),
+    ).toThrow(InvalidStockAdjustmentReasonError);
   });
 
   it.each([0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY])(

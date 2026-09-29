@@ -1,7 +1,10 @@
 import { Prisma } from "../../../generated/prisma/client.js";
 import type { PrismaClient } from "../../../generated/prisma/client.js";
 import type { Product } from "../domain/product.entity.js";
-import { ProductCategoryAssignmentConflictError } from "../domain/product.errors.js";
+import {
+  ProductCategoryAssignmentConflictError,
+  ProductSkuAlreadyExistsError,
+} from "../domain/product.errors.js";
 import type {
   ProductListQuery,
   ProductListResult,
@@ -125,6 +128,10 @@ export class PrismaProductRepository implements ProductRepository {
 
       return toDomainProduct(storedProduct);
     } catch (error) {
+      if (isUniqueConstraintConflict(error)) {
+        throw new ProductSkuAlreadyExistsError();
+      }
+
       if (isForeignKeyConflict(error)) {
         throw new ProductCategoryAssignmentConflictError();
       }
@@ -209,6 +216,13 @@ function isForeignKeyConflict(error: unknown): boolean {
   return (
     error instanceof Prisma.PrismaClientKnownRequestError &&
     error.code === "P2003"
+  );
+}
+
+function isUniqueConstraintConflict(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2002"
   );
 }
 

@@ -4,6 +4,7 @@ import type {
   PrismaClient,
 } from "../../../generated/prisma/client.js";
 import type { Category } from "../domain/category.entity.js";
+import { CategoryNameAlreadyExistsError } from "../domain/category.errors.js";
 import type {
   CategoryListQuery,
   CategoryListResult,
@@ -14,19 +15,23 @@ export class PrismaCategoryRepository implements CategoryRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(category: Category): Promise<Category> {
-    const createdCategory = await this.prisma.category.create({
-      data: {
-        uuid: category.uuid,
-        name: category.name,
-        nameNormalized: category.nameNormalized,
-        description: category.description,
-        isActive: category.isActive,
-        createdAt: category.createdAt,
-        updatedAt: category.updatedAt,
-      },
-    });
+    try {
+      const createdCategory = await this.prisma.category.create({
+        data: {
+          uuid: category.uuid,
+          name: category.name,
+          nameNormalized: category.nameNormalized,
+          description: category.description,
+          isActive: category.isActive,
+          createdAt: category.createdAt,
+          updatedAt: category.updatedAt,
+        },
+      });
 
-    return toDomainCategory(createdCategory);
+      return toDomainCategory(createdCategory);
+    } catch (error) {
+      throwUniqueNameConflict(error);
+    }
   }
 
   async findByNameNormalized(nameNormalized: string): Promise<Category | null> {
@@ -71,18 +76,22 @@ export class PrismaCategoryRepository implements CategoryRepository {
   }
 
   async update(category: Category): Promise<Category> {
-    const updatedCategory = await this.prisma.category.update({
-      where: { uuid: category.uuid },
-      data: {
-        name: category.name,
-        nameNormalized: category.nameNormalized,
-        description: category.description,
-        isActive: category.isActive,
-        updatedAt: category.updatedAt,
-      },
-    });
+    try {
+      const updatedCategory = await this.prisma.category.update({
+        where: { uuid: category.uuid },
+        data: {
+          name: category.name,
+          nameNormalized: category.nameNormalized,
+          description: category.description,
+          isActive: category.isActive,
+          updatedAt: category.updatedAt,
+        },
+      });
 
-    return toDomainCategory(updatedCategory);
+      return toDomainCategory(updatedCategory);
+    } catch (error) {
+      throwUniqueNameConflict(error);
+    }
   }
 
   async updateIfUnused(
@@ -207,6 +216,17 @@ function isForeignKeyConflict(error: unknown): boolean {
     error instanceof Prisma.PrismaClientKnownRequestError &&
     error.code === "P2003"
   );
+}
+
+function throwUniqueNameConflict(error: unknown): never {
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2002"
+  ) {
+    throw new CategoryNameAlreadyExistsError();
+  }
+
+  throw error;
 }
 
 function toDomainCategory(category: PrismaCategory): Category {
