@@ -50,7 +50,7 @@ describe("Better Auth routes", () => {
 
     expect(body).toEqual({
       data: {
-        user: { id: expect.any(String), email },
+        user: { id: expect.any(String), email, role: "VIEWER" },
         session: {
           id: expect.any(String),
           createdAt: expect.any(String),
@@ -103,7 +103,7 @@ describe("Better Auth routes", () => {
     const cookie = sessionCookie(loginResponse);
     await expect(loginResponse.json()).resolves.toMatchObject({
       data: {
-        user: { email },
+        user: { email, role: "VIEWER" },
         session: {
           id: expect.any(String),
           createdAt: expect.any(String),
@@ -116,7 +116,10 @@ describe("Better Auth routes", () => {
     });
     expect(sessionResponse.status).toBe(200);
     await expect(sessionResponse.json()).resolves.toMatchObject({
-      data: { user: { email }, session: { id: expect.any(String) } },
+      data: {
+        user: { email, role: "VIEWER" },
+        session: { id: expect.any(String) },
+      },
     });
 
     const signOutResponse = await app.request("/api/auth/sign-out", {

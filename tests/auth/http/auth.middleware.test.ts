@@ -74,6 +74,7 @@ describe("Authentication middleware", () => {
     await expect(response.json()).resolves.toEqual({
       id: expect.any(String),
       email: expect.stringMatching(/@example\.com$/),
+      role: "VIEWER",
     });
   });
 

@@ -79,7 +79,14 @@ describe("Authentication OpenAPI contract", () => {
       },
     });
     expect(document.components.schemas.PublicAuthUser).toMatchObject({
-      properties: { id: expect.anything(), email: expect.anything() },
+      properties: {
+        id: expect.anything(),
+        email: expect.anything(),
+        role: {
+          type: "string",
+          enum: ["ADMIN", "MANAGER", "OPERATOR", "VIEWER"],
+        },
+      },
     });
     expect(document.components.schemas.PublicAuthSession).toMatchObject({
       properties: { id: expect.anything(), createdAt: expect.anything() },

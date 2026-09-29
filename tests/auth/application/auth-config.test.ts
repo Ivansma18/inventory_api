@@ -28,6 +28,7 @@ describe("Better Auth configuration", () => {
     createdUserIds.push(result.user.id);
 
     expect(result.user.email).toBe(email);
+    expect(result.user.role).toBe("VIEWER");
     expect(result.token).toEqual(expect.any(String));
     const session = await prisma.session.findFirstOrThrow({
       where: { userId: result.user.id },

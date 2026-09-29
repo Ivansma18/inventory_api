@@ -9,6 +9,15 @@ const sessionLifetimeSeconds = 60 * 60 * 24 * 400;
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
+  user: {
+    additionalFields: {
+      role: {
+        type: ["ADMIN", "MANAGER", "OPERATOR", "VIEWER"],
+        defaultValue: "VIEWER",
+        input: false,
+      },
+    },
+  },
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
   trustedOrigins: [env.BETTER_AUTH_URL],
