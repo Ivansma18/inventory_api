@@ -1,6 +1,6 @@
 # Tareas - Spec 006 Authorization
 
-- [ ] T1. Añadir `User.role` con los cuatro roles fijos y valor predeterminado `VIEWER`; crear la migración de backfill para las cuentas existentes y probarla sobre un usuario preexistente. (RF-1, RF-2, RF-23)
+- [x] T1. Añadir `User.role` con los cuatro roles fijos y valor predeterminado `VIEWER`; crear la migración de backfill para las cuentas existentes y probarla sobre un usuario preexistente. (RF-1, RF-2, RF-23)
       Hecho cuando: Prisma genera el modelo con el enum y default acordados; una prueba PostgreSQL aplica la migración sobre una cuenta existente, verifica `VIEWER` y confirma que puede promoverse manualmente a `ADMIN`.
 
 - [ ] T2. Configurar el campo de rol persistido en Better Auth como no editable por clientes y exponerlo en las respuestas públicas de registro, login y consulta de sesión. (RF-2, RF-18)

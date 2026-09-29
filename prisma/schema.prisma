@@ -13,6 +13,13 @@ enum StockMovementType {
   ADJUSTMENT
 }
 
+enum UserRole {
+  ADMIN
+  MANAGER
+  OPERATOR
+  VIEWER
+}
+
 model Product {
   id             Int             @id @default(autoincrement())
   uuid           String          @unique @default(uuid()) @db.Uuid
@@ -64,6 +71,7 @@ model User {
   id            String    @id
   name          String
   email         String    @unique
+  role          UserRole  @default(VIEWER)
   emailVerified Boolean   @default(false)
   image         String?
   createdAt     DateTime  @default(now())
