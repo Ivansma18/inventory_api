@@ -39,7 +39,7 @@ La API ya identifica al usuario autenticado, pero todavía no controla las opera
 - RF-15: MIENTRAS el usuario autenticado tenga rol `VIEWER`, EL SISTEMA no le permitirá operaciones que modifiquen recursos.
 - RF-16: SI un usuario autenticado solicita una operación que su rol no permite, ENTONCES EL SISTEMA responderá con `403`.
 - RF-17: SI una solicitud sin sesión válida se dirige a `POST /products`, `PATCH /products/:uuid`, `DELETE /products/:uuid`, `POST /categories`, `PATCH /categories/:uuid`, `DELETE /categories/:uuid`, `PATCH /inventory/:productUuid/minimum-stock`, `POST /inventory/:productUuid/entries`, `POST /inventory/:productUuid/exits`, `POST /inventory/:productUuid/adjustments`, `GET /users` o `PATCH /users/:id/role`, ENTONCES EL SISTEMA responderá con `401`; las rutas de autenticación conservarán el contrato de la Spec 005.
-- RF-18: CUANDO un usuario autenticado consulte su sesión, EL SISTEMA incluirá su rol actual junto con su identidad pública.
+- RF-18: CUANDO un usuario se registre, inicie sesión o consulte su sesión, EL SISTEMA incluirá el rol actual de su cuenta como `user.role` en la identidad pública de la respuesta.
 - RF-19: CUANDO el rol de un usuario cambie, EL SISTEMA aplicará el nuevo rol en la siguiente solicitud autenticada de cualquiera de sus sesiones activas sin requerir un nuevo inicio de sesión.
 - RF-20: EL SISTEMA limitará las operaciones de cada rol a las definidas en RF-12, RF-13, RF-14 y RF-15.
 - RF-21: CUANDO un `ADMIN` omita `page` o `limit` en `GET /users`, EL SISTEMA usará `page=1` y `limit=15`.
@@ -54,7 +54,7 @@ La API ya identifica al usuario autenticado, pero todavía no controla las opera
 - Las reglas de autorización se probarán sin depender de HTTP, Prisma o PostgreSQL.
 - Las rutas HTTP no contendrán reglas de roles o permisos complejas.
 - Las respuestas no expondrán contraseñas, tokens, secretos ni datos privados adicionales.
-- La consulta de sesión incluirá el rol actual, por lo que actualiza el contrato definido en la Spec 005.
+- Las respuestas exitosas de registro, inicio de sesión y consulta de sesión incluirán el rol actual como `user.role`; este campo amplía la identidad pública definida en la Spec 005.
 - Las rutas de lectura existentes permanecerán públicas; `GET /users` será la única operación de lectura que exigirá `ADMIN`.
 
 ## Casos límite
@@ -83,7 +83,7 @@ La API ya identifica al usuario autenticado, pero todavía no controla las opera
 - Varias sesiones activas de un usuario cuyo rol cambia.
 - Sesión cerrada intentando acceder a una operación protegida.
 - Consulta de usuarios con una cuenta sin permisos.
-- Respuestas de sesión con el rol actual y sin información sensible.
+- Respuestas de registro, inicio de sesión y consulta de sesión con el rol actual y sin información sensible.
 
 ## Fuera de alcance
 
@@ -113,7 +113,7 @@ La API ya identifica al usuario autenticado, pero todavía no controla las opera
 - Las rutas de lectura existentes continúan siendo públicas.
 - Las solicitudes sin sesión a las rutas enumeradas en RF-17 reciben `401`.
 - Las solicitudes autenticadas sin permiso, incluidas las solicitudes no `ADMIN` a `PATCH /users/:id/role`, reciben `403`.
-- La sesión muestra el rol actual sin exponer información sensible.
+- Las respuestas de registro, inicio de sesión y consulta de sesión muestran el rol actual sin exponer información sensible.
 - Los contratos OpenAPI y los errores correspondientes están documentados y probados.
 
 ## Dudas abiertas

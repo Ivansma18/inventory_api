@@ -2,7 +2,7 @@
 
 ## Contexto y objetivo
 
-La API necesita identificar quién realiza cada petición antes de permitir operaciones de escritura. Esta fase incorpora registro mediante nombre, email y contraseña; inicio de sesión mediante email y contraseña; consulta y cierre de sesión; además de proteger las operaciones que modifican productos o inventario. La autorización por roles y permisos se define en la Spec 006; esta spec expone el rol actual dentro de la identidad pública para que ese contrato pueda aplicarse.
+La API necesita identificar quién realiza cada petición antes de permitir operaciones de escritura. Esta fase incorpora registro mediante nombre, email y contraseña; inicio de sesión mediante email y contraseña; consulta y cierre de sesión; además de proteger las operaciones que modifican productos o inventario. La autorización por roles y permisos, incluido el rol público del usuario, se define en la Spec 006.
 
 ## Usuarios / actores
 
@@ -26,11 +26,11 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - RF-3: SI el email, después de eliminar espacios exteriores y convertirlo a minúsculas, no tiene un formato válido, ENTONCES EL SISTEMA rechazará el registro con `400`.
 - RF-4: SI la contraseña contiene menos de 8 caracteres, ENTONCES EL SISTEMA rechazará el registro con `400`.
 - RF-5: SI el email normalizado ya está registrado, ENTONCES EL SISTEMA rechazará el registro con `409` y código `EMAIL_ALREADY_REGISTERED` sin crear una segunda cuenta.
-- RF-6: CUANDO el registro sea correcto, EL SISTEMA creará automáticamente una sesión y devolverá `201` con `{ data: { user: { id, email, role }, session: { id, createdAt } } }` sin exponer la contraseña.
-- RF-7: CUANDO un usuario envíe credenciales válidas, EL SISTEMA iniciará una sesión autenticada y devolverá `200` con `{ data: { user: { id, email, role }, session: { id, createdAt } } }` sin exponer la contraseña.
+- RF-6: CUANDO el registro sea correcto, EL SISTEMA creará automáticamente una sesión y devolverá `201` con `{ data: { user: { id, email }, session: { id, createdAt } } }` sin exponer la contraseña.
+- RF-7: CUANDO un usuario envíe credenciales válidas, EL SISTEMA iniciará una sesión autenticada y devolverá `200` con `{ data: { user: { id, email }, session: { id, createdAt } }` sin exponer la contraseña.
 - RF-8: SI el email o la contraseña no coinciden con una cuenta existente, ENTONCES EL SISTEMA responderá `401` con `{ error: { code: "UNAUTHORIZED", message: "Authentication required" } }`.
 - RF-9: CUANDO el inicio de sesión sea correcto, EL SISTEMA establecerá la sesión del usuario para las siguientes peticiones autenticadas.
-- RF-10: CUANDO un usuario consulte su sesión con una sesión válida, EL SISTEMA devolverá `200` con `{ data: { user: { id, email, role }, session: { id, createdAt } } }` sin exponer la contraseña.
+- RF-10: CUANDO un usuario consulte su sesión con una sesión válida, EL SISTEMA devolverá `200` con `{ data: { user: { id, email }, session: { id, createdAt } } }` sin exponer la contraseña.
 - RF-11: SI un usuario consulta su sesión sin una sesión válida, ENTONCES EL SISTEMA responderá `401` con `{ error: { code: "UNAUTHORIZED", message: "Authentication required" } }`.
 - RF-12: CUANDO un usuario cierre sesión, EL SISTEMA invalidará únicamente su sesión actual.
 - RF-13: CUANDO un usuario solicite cerrar sesión sin una sesión válida, EL SISTEMA responderá `204` sin crear ni conservar una sesión.
@@ -57,7 +57,7 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - Los emails se normalizarán eliminando espacios exteriores y convirtiéndolos a minúsculas antes de validarlos y persistirlos.
 - Las contraseñas se protegerán mediante un mecanismo irreversible de almacenamiento.
 - Las respuestas exitosas de registro, inicio de sesión y consulta de sesión usarán las estructuras definidas en RF-6, RF-7 y RF-10.
-- La identidad pública de un usuario incluirá únicamente `id`, `email` y `role`.
+- La identidad pública de un usuario incluirá únicamente `id` y `email`.
 - La sesión se transportará mediante una cookie de sesión y el campo `session` de las respuestas contendrá exactamente `id` y `createdAt`.
 - La cookie y la sesión tendrán una duración máxima de 400 días.
 - Las pruebas cubrirán registro, inicio de sesión, consulta de sesión, cierre de sesión y protección de endpoints.
@@ -101,7 +101,7 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - Eliminación con UUID inválido.
 - Fallo de persistencia durante el registro, inicio o cierre de sesión.
 - Campos desconocidos durante el inicio o consulta de sesión.
-- Respuestas de autenticación con `user.id`, `user.email` y `user.role`, sin tokens ni secretos de sesión.
+- Respuestas de autenticación con `user.id` y `user.email`, sin tokens ni secretos de sesión.
 - Respuestas de sesión sin `expiresAt` ni campos adicionales.
 - Intento de exponer la contraseña en respuestas o errores.
 
@@ -122,7 +122,7 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - Todos los RF están implementados y probados.
 - Un usuario puede registrarse con nombre, email y contraseña.
 - Un usuario registrado puede iniciar y cerrar sesión con las respuestas definidas.
-- La sesión actual puede consultarse con una respuesta `200`, `user.id`, `user.email`, `user.role` y la sesión activa.
+- La sesión actual puede consultarse con una respuesta `200`, `user.id`, `user.email` y la sesión activa.
 - Las operaciones protegidas rechazan solicitudes sin sesión con `401 UNAUTHORIZED` y el formato estándar.
 - Las operaciones protegidas permiten solicitudes con sesión válida.
 - El cierre de una sesión no invalida otras sesiones activas del mismo usuario.

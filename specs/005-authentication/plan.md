@@ -2,7 +2,7 @@
 
 ## Contexto
 
-La Spec 005 incorpora autenticación por email y contraseña para resolver la identidad de quien realiza una petición. La implementación debe permitir registro, inicio de sesión, consulta y cierre de sesión; establecer la sesión mediante cookie; exponer la identidad pública (`id`, `email`, `role`) y los metadatos de sesión (`id`, `createdAt`); y proteger las operaciones de escritura de productos y movimientos de inventario.
+La Spec 005 incorpora autenticación por email y contraseña para resolver la identidad de quien realiza una petición. La implementación debe permitir registro, inicio de sesión, consulta y cierre de sesión; establecer la sesión mediante cookie; exponer la identidad pública (`id`, `email`) y los metadatos de sesión (`id`, `createdAt`); y proteger las operaciones de escritura de productos y movimientos de inventario.
 
 La autorización por roles y permisos queda fuera de alcance. Las lecturas existentes permanecerán públicas. La implementación respetará la separación entre la feature `auth`, el middleware transversal y la composición de `app.ts`. La sesión tendrá una duración máxima de 400 días, límite impuesto por las cookies de Better Auth.
 
@@ -13,7 +13,7 @@ La autorización por roles y permisos queda fuera de alcance. Las lecturas exist
 | `prisma/schema.prisma` y migración de autenticación                                    | Añadir las entidades persistentes requeridas por Better Auth para usuarios, sesiones, cuentas y verificaciones, con unicidad de email y token de sesión.                   | RF-1, RF-5, RF-7, RF-12, RF-14, RF-24                 |
 | `src/features/auth/auth.config.ts`                                                     | Construir la instancia de Better Auth con email/contraseña habilitado, sin verificación de email, adaptador Prisma y configuración de cookies/sesiones.                    | RF-3 a RF-15, RF-23, RF-24, RF-27                     |
 | `src/features/auth/auth.routes.ts`                                                     | Exponer el handler de Better Auth para registro con nombre, email y contraseña; login, consulta de sesión y sign-out bajo la base pública de autenticación.                | RF-1 a RF-15, RF-23, RF-26, RF-27                     |
-| `src/features/auth/auth.types.ts`                                                      | Definir los tipos públicos de identidad, incluido el rol actual, metadatos de sesión y contexto de identidad autenticada, sin incluir secretos.                            | RF-6, RF-7, RF-10, RF-23, RF-27                       |
+| `src/features/auth/auth.types.ts`                                                      | Definir los tipos públicos de identidad, metadatos de sesión y contexto de identidad autenticada, sin incluir secretos.                                                   | RF-6, RF-7, RF-10, RF-23, RF-27                       |
 | `src/features/auth/index.ts`                                                           | Exponer únicamente la API pública de la feature auth para la composition root.                                                                                             | RF-1 a RF-15                                          |
 | `src/shared/middlewares/auth.middleware.ts`                                            | Leer la cookie de sesión, validar la sesión con Better Auth, inyectar la identidad pública en el contexto y devolver el error estándar cuando no exista una sesión válida. | RF-9, RF-11, RF-16, RF-21, RF-25                      |
 | `src/app.ts`                                                                           | Montar las rutas de autenticación, aplicar el middleware solo a las operaciones de escritura definidas y conservar públicas las lecturas.                                  | RF-16 a RF-22                                         |
@@ -43,7 +43,7 @@ La autorización por roles y permisos queda fuera de alcance. Las lecturas exist
 - La contraseña tendrá mínimo 8 caracteres.
 - El registro correcto responderá `201` y establecerá una cookie de sesión.
 - El login correcto responderá `200` y establecerá una cookie de sesión.
-- Registro y login devolverán `{ data: { user: { id, email, role }, session: { id, createdAt } } }`.
+- Registro y login devolverán `{ data: { user: { id, email }, session: { id, createdAt } } }`.
 - La consulta de sesión válida devolverá `200` con la misma forma pública de usuario y sesión.
 - El sign-out invalidará solo la sesión asociada a la cookie actual y devolverá `204`.
 - El sign-out sin sesión válida también devolverá `204` y eliminará cualquier cookie de sesión recibida.
@@ -82,7 +82,7 @@ La autorización por roles y permisos queda fuera de alcance. Las lecturas exist
 
 ### Mapper público de identidad y sesión
 
-- Elegida: transformar las respuestas de Better Auth a los DTOs públicos definidos por la spec, conservando solo `user.id`, `user.email`, `user.role`, `session.id` y `session.createdAt`.
+- Elegida: transformar las respuestas de Better Auth a los DTOs públicos definidos por la spec, conservando solo `user.id`, `user.email`, `session.id` y `session.createdAt`.
 - Descartada: devolver directamente el objeto de sesión de Better Auth. Puede incluir `expiresAt`, tokens internos u otros campos que la spec prohíbe exponer.
 - RF cubiertos: RF-6, RF-7, RF-10, RF-23, RF-27.
 
@@ -120,10 +120,10 @@ La autorización por roles y permisos queda fuera de alcance. Las lecturas exist
 
 | RF                           | Prueba                                                                                                                       | Nivel                         | Evidencia esperada                                                                                            |
 | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| RF-1, RF-2, RF-3, RF-4, RF-6 | Registrar usuario con nombre, email y contraseña válidos; nombre ausente/vacío; email inválido, email con espacios/mayúsculas y contraseñas de 7 y 8 caracteres. | integración HTTP + PostgreSQL | Cuenta creada solo con nombre, email y contraseña válidos; `201`, cookie y DTO público con rol; validaciones `400`.          |
+| RF-1, RF-2, RF-3, RF-4, RF-6 | Registrar usuario con nombre, email y contraseña válidos; nombre ausente/vacío; email inválido, email con espacios/mayúsculas y contraseñas de 7 y 8 caracteres. | integración HTTP + PostgreSQL | Cuenta creada solo con nombre, email y contraseña válidos; `201`, cookie y DTO público correcto; validaciones `400`.                 |
 | RF-5                         | Registrar dos veces el mismo email y repetir con diferencias de mayúsculas/espacios.                                         | integración HTTP + PostgreSQL | Una sola cuenta y `409 EMAIL_ALREADY_REGISTERED`.                                                             |
 | RF-7, RF-8, RF-9             | Iniciar sesión con credenciales válidas, email inexistente y contraseña incorrecta.                                          | integración HTTP              | `200` con cookie y DTO público; errores genéricos `401`.                                                      |
-| RF-10, RF-11                 | Consultar sesión con cookie válida, ausente, manipulada y asociada a sesión inexistente.                                     | integración HTTP              | `200` con exactamente `user.id`, `user.email`, `user.role`, `session.id`, `session.createdAt`; errores `401` estándar. |
+| RF-10, RF-11                 | Consultar sesión con cookie válida, ausente, manipulada y asociada a sesión inexistente.                                     | integración HTTP              | `200` con exactamente `user.id`, `user.email`, `session.id`, `session.createdAt`; errores `401` estándar.              |
 | RF-12, RF-13, RF-25          | Cerrar sesión con cookie válida, ausente y ya cerrada; intentar usar la cookie después.                                      | integración HTTP + PostgreSQL | `204`; sesión actual inválida; otras sesiones del mismo usuario siguen funcionando.                           |
 | RF-14                        | Mantener una sesión válida durante su vigencia y consultar una sesión creada con más de 400 días.                            | integración HTTP              | La sesión funciona antes del límite y deja de ser válida después de 400 días.                                 |
 | RF-15                        | Iniciar sesión inmediatamente después del registro sin verificación de email.                                                | integración HTTP              | Login permitido sin flujo de verificación.                                                                    |

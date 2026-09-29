@@ -6,8 +6,8 @@
 - [x] T2. Configurar la instancia de Better Auth con adaptador Prisma, email/contraseña, normalización de email, ausencia de verificación de email, cookie de sesión y duración máxima de 400 días. (RF-3, RF-4, RF-14, RF-15, RF-24)
       Hecho cuando: las pruebas de configuración verifican email normalizado, contraseña mínima de 8 caracteres, login sin verificación de email, sesión válida dentro de 400 días y expiración posterior al límite.
 
-- [x] T3. Definir los tipos públicos y mappers de autenticación para exponer únicamente `user.id`, `user.email`, `user.role`, `session.id` y `session.createdAt`. (RF-6, RF-7, RF-10, RF-23, RF-27)
-      Hecho cuando: las pruebas de serialización demuestran que las respuestas incluyen el rol actual y no contienen contraseña, token, secreto, `expiresAt` ni campos adicionales de sesión.
+- [x] T3. Definir los tipos públicos y mappers de autenticación para exponer únicamente `user.id`, `user.email`, `session.id` y `session.createdAt`. (RF-6, RF-7, RF-10, RF-23, RF-27)
+      Hecho cuando: las pruebas de serialización demuestran que las respuestas no contienen contraseña, token, secreto, `expiresAt` ni campos adicionales de sesión.
 
 - [x] T4. Montar el handler público de Better Auth para registro con `name`, email y contraseña; login, consulta de sesión y sign-out, con normalización de cuerpos, códigos `201`, `200`, `204`, `400`, `401` y `409`. (RF-1 a RF-15, RF-23, RF-26, RF-27)
       Hecho cuando: las pruebas HTTP cubren el ciclo completo, email duplicado con `409 EMAIL_ALREADY_REGISTERED`, credenciales inválidas con `401`, sign-out idempotente con `204` y cookies emitidas correctamente.
@@ -22,7 +22,7 @@
       Hecho cuando: las tres operaciones responden `401` sin sesión, funcionan con sesión válida y las consultas de inventario y movimientos continúan públicas.
 
 - [x] T8. Registrar la feature de autenticación y sus schemas en `app.ts`, documentando los contratos públicos y errores aplicables en OpenAPI/Swagger. (RF-1, RF-2, RF-3, RF-5, RF-6, RF-7, RF-8, RF-10, RF-11, RF-13, RF-16, RF-23, RF-27)
-      Hecho cuando: `/openapi.json` y `/docs` exponen el registro con `name`, email y contraseña, las respuestas públicas con `user.id`, `user.email`, `user.role`, la sesión permitida y sin tokens ni secretos.
+      Hecho cuando: `/openapi.json` y `/docs` exponen el registro con `name`, email y contraseña, las respuestas públicas con `user.id`, `user.email`, la sesión permitida y sin tokens ni secretos.
 
 - [x] T9. Añadir pruebas de ciclo de vida de autenticación con PostgreSQL para registro con nombre obligatorio, login, sesión, sign-out, normalización, duplicados, validaciones y fallos de persistencia. (RF-1 a RF-15, RF-23, RF-24, RF-26, RF-27)
       Hecho cuando: la suite verifica nombre válido, ausente y vacío; el ciclo de vida, ausencia de contraseñas en texto plano y que los campos desconocidos se ignoran en registro, login y consulta de sesión.
@@ -58,11 +58,11 @@
 | RF-3  | T2, T4, T9      | Email inválido responde `400` después de normalización.                            |
 | RF-4  | T2, T4, T9      | Contraseña menor de 8 caracteres responde `400`.                                   |
 | RF-5  | T1, T4, T9      | Email normalizado duplicado responde `409 EMAIL_ALREADY_REGISTERED`.               |
-| RF-6  | T3, T4, T8, T9  | Registro responde `201`, cookie y DTO público con rol.                             |
-| RF-7  | T3, T4, T8, T9  | Login responde `200`, cookie y DTO público con rol.                                |
+| RF-6  | T3, T4, T8, T9  | Registro responde `201`, cookie y DTO público definido.                            |
+| RF-7  | T3, T4, T8, T9  | Login responde `200`, cookie y DTO público definido.                               |
 | RF-8  | T4, T8, T9      | Credenciales inválidas responden `401 UNAUTHORIZED`.                               |
 | RF-9  | T4, T5, T9      | Cookie creada en login autentica peticiones posteriores.                           |
-| RF-10 | T3, T4, T8, T9  | Consulta válida responde identidad, incluido el rol, y sesión pública.             |
+| RF-10 | T3, T4, T8, T9  | Consulta válida responde identidad y sesión pública definidas.                     |
 | RF-11 | T5, T8, T9      | Consulta sin sesión responde `401 UNAUTHORIZED`.                                   |
 | RF-12 | T4, T10         | Sign-out invalida solo la sesión actual.                                           |
 | RF-13 | T4, T9, T10     | Sign-out sin sesión responde `204` idempotentemente.                               |
