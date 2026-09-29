@@ -13,6 +13,7 @@ import {
   categorySortFields,
   type CategorySortField,
 } from "../../../src/features/categories/domain/category.repository.js";
+import { CategoryNameAlreadyExistsError } from "../../../src/features/categories/domain/category.errors.js";
 import { PrismaCategoryRepository } from "../../../src/features/categories/infrastructure/prisma-category.repository.js";
 import { prisma } from "../../../src/shared/database/prisma.js";
 
@@ -87,9 +88,9 @@ describe("PrismaCategoryRepository", () => {
 
     await repository.create(category);
 
-    await expect(repository.create(duplicate)).rejects.toMatchObject({
-      code: "P2002",
-    });
+    await expect(repository.create(duplicate)).rejects.toThrow(
+      CategoryNameAlreadyExistsError,
+    );
   });
 
   it("updates persisted categories without losing nullable fields or state", async () => {
@@ -112,6 +113,23 @@ describe("PrismaCategoryRepository", () => {
     );
     await expect(repository.findByUuid(category.uuid)).resolves.toEqual(
       updatedCategory,
+    );
+  });
+
+  it("maps a unique name conflict during a direct repository update", async () => {
+    const first = createTestCategory({ name: "Unique category A" });
+    const second = createTestCategory({ name: "Unique category B" });
+    createdCategoryUuids.push(first.uuid, second.uuid);
+    await Promise.all([repository.create(first), repository.create(second)]);
+
+    const duplicateName = updateCategory(
+      second,
+      { name: first.name },
+      second.updatedAt,
+    );
+
+    await expect(repository.update(duplicateName)).rejects.toThrow(
+      CategoryNameAlreadyExistsError,
     );
   });
 

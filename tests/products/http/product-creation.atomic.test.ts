@@ -1,17 +1,23 @@
 import { randomUUID } from "node:crypto";
 
+import { Hono } from "hono";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { app } from "../../../src/app.js";
+import { createAuthRoutes } from "../../../src/features/auth/http/auth.routes.js";
 import { prisma } from "../../../src/shared/database/prisma.js";
 
 const createdCategoryUuids: string[] = [];
+const createdUserIds: string[] = [];
+const authRoutes = new Hono().route("/api/auth", createAuthRoutes());
 
 afterEach(async () => {
   await prisma.category.deleteMany({
     where: { uuid: { in: createdCategoryUuids } },
   });
+  await prisma.user.deleteMany({ where: { id: { in: createdUserIds } } });
   createdCategoryUuids.length = 0;
+  createdUserIds.length = 0;
 });
 
 describe("POST /products", () => {
@@ -44,9 +50,22 @@ describe("POST /products", () => {
         FOR EACH ROW EXECUTE FUNCTION "${functionName}"();
       `);
 
+      const authResponse = await authRoutes.request("/api/auth/sign-up/email", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: "Atomic test user",
+          email: `${suffix}@example.com`,
+          password: "valid-password-123",
+        }),
+      });
+      const authBody = await authResponse.json();
+      createdUserIds.push(authBody.data.user.id);
+      const cookie = authResponse.headers.get("set-cookie")!.split(";")[0];
+
       const response = await app.request("/products", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { Cookie: cookie, "Content-Type": "application/json" },
         body: JSON.stringify({
           sku: `SKU-${suffix}`,
           name: "Atomic product",

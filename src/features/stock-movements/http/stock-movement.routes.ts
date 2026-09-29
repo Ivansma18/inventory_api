@@ -1,3 +1,4 @@
+import type { MiddlewareHandler } from "hono";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 
 import type {
@@ -8,9 +9,11 @@ import type {
 import type { StockMovement } from "../domain/stock-movement.entity.js";
 import {
   InsufficientStockError,
+  InvalidStockAdjustmentReasonError,
   StockMovementProductNotFoundError,
 } from "../domain/stock-movement.errors.js";
 import { errorHandler } from "../../../shared/errors/error-handler.js";
+import type { AuthMiddlewareEnv } from "../../../shared/middlewares/auth.middleware.js";
 import { toStockMovementResponse } from "./stock-movement.mapper.js";
 import {
   adjustStockSchema,
@@ -38,6 +41,7 @@ export interface StockMovementCreationHttpService {
 
 interface StockMovementCreationRoutesDependencies {
   service: StockMovementCreationHttpService;
+  authMiddleware?: MiddlewareHandler<AuthMiddlewareEnv>;
 }
 
 const stockMovementCreationResponses = {
@@ -52,6 +56,12 @@ const stockMovementCreationResponses = {
       "application/json": { schema: stockMovementErrorResponseSchema },
     },
     description: "Invalid product UUID or movement data",
+  },
+  401: {
+    content: {
+      "application/json": { schema: stockMovementErrorResponseSchema },
+    },
+    description: "Authentication required",
   },
   404: {
     content: {
@@ -77,6 +87,7 @@ const createStockEntryRoute = createRoute({
   method: "post",
   path: "/{productUuid}/entries",
   tags: ["Stock Movements"],
+  security: [{ sessionCookie: [] }],
   request: {
     params: stockMovementParamsSchema,
     body: {
@@ -91,6 +102,7 @@ const createStockExitRoute = createRoute({
   method: "post",
   path: "/{productUuid}/exits",
   tags: ["Stock Movements"],
+  security: [{ sessionCookie: [] }],
   request: {
     params: stockMovementParamsSchema,
     body: {
@@ -105,6 +117,7 @@ const adjustStockRoute = createRoute({
   method: "post",
   path: "/{productUuid}/adjustments",
   tags: ["Stock Movements"],
+  security: [{ sessionCookie: [] }],
   request: {
     params: stockMovementParamsSchema,
     body: {
@@ -117,8 +130,9 @@ const adjustStockRoute = createRoute({
 
 export function createStockMovementInventoryRoutes({
   service,
-}: StockMovementCreationRoutesDependencies): OpenAPIHono {
-  const routes = new OpenAPIHono({
+  authMiddleware,
+}: StockMovementCreationRoutesDependencies): OpenAPIHono<AuthMiddlewareEnv> {
+  const routes = new OpenAPIHono<AuthMiddlewareEnv>({
     defaultHook: (result, context) => {
       if (!result.success) {
         return context.json(
@@ -133,6 +147,16 @@ export function createStockMovementInventoryRoutes({
       }
     },
   });
+
+  if (authMiddleware) {
+    routes.use("*", async (context, next) => {
+      if (context.req.method !== "POST") {
+        return next();
+      }
+
+      return authMiddleware(context, next);
+    });
+  }
 
   routes.openapi(createStockEntryRoute, async (context) => {
     const { productUuid } = context.req.valid("param");
@@ -162,12 +186,21 @@ export function createStockMovementInventoryRoutes({
     return context.json({ data: toStockMovementResponse(movement) }, 201);
   });
   routes.onError((error, context) => {
-    if (error instanceof InsufficientStockError) {
+    if (
+      error instanceof InsufficientStockError ||
+      error instanceof InvalidStockAdjustmentReasonError
+    ) {
       return context.json(
         {
-          error: { code: "INSUFFICIENT_STOCK", message: error.message },
+          error: {
+            code:
+              error instanceof InsufficientStockError
+                ? "INSUFFICIENT_STOCK"
+                : "VALIDATION_ERROR",
+            message: error.message,
+          },
         },
-        409,
+        error instanceof InsufficientStockError ? 409 : 400,
       );
     }
 

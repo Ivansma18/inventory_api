@@ -33,6 +33,7 @@ function createService(
     getProduct: async () => product,
     listProducts: async () => ({ products: [product], total: 1 }),
     updateProduct: async () => product,
+    deleteProduct: async () => ({ ...product, isActive: false }),
     ...overrides,
   };
 }

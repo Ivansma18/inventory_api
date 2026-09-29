@@ -18,7 +18,7 @@ La primera capacidad de negocio del sistema es el catálogo de productos. Debe p
 
 ## Requisitos funcionales (criterios de aceptación en EARS)
 
-- RF-1: CUANDO el cliente envíe un producto con SKU, nombre y precios válidos, EL SISTEMA creará el producto con un UUID público, `isActive` en `true` y marcas de tiempo de creación y actualización.
+- RF-1: CUANDO el cliente envíe un producto con SKU, nombre, precios válidos y `categoryUuid` de una categoría activa existente, EL SISTEMA creará el producto con un UUID público, `isActive` en `true` y marcas de tiempo de creación y actualización.
 - RF-2: SI el SKU queda ausente o vacío después de eliminar sus espacios exteriores, ENTONCES EL SISTEMA rechazará la creación o actualización del producto con un error `400`.
 - RF-3: SI el nombre queda ausente o vacío después de eliminar sus espacios exteriores, ENTONCES EL SISTEMA rechazará la creación o actualización del producto con un error `400`.
 - RF-4: SI el precio de compra es negativo o tiene más de dos decimales, ENTONCES EL SISTEMA rechazará la creación o actualización del producto con un error `400`.
@@ -50,13 +50,14 @@ La primera capacidad de negocio del sistema es el catálogo de productos. Debe p
 - RF-30: CUANDO el cliente envíe campos no definidos en el contrato de creación o actualización, EL SISTEMA ignorará esos campos.
 - RF-31: SI el cliente actualiza un producto sin campos reconocidos después de ignorar los campos no definidos, ENTONCES EL SISTEMA rechazará la solicitud con un error `400`.
 - RF-32: CUANDO el cliente cree un producto con los campos obligatorios válidos y campos no definidos, EL SISTEMA creará el producto e ignorará los campos no definidos.
+- RF-33: CUANDO un cliente autenticado solicite `DELETE /products/:uuid` para un producto existente, EL SISTEMA establecerá `isActive=false`, conservará el producto y devolverá `200` con `{ data: { uuid, isActive: false } }`.
 
 ## Requisitos no funcionales
 
 - Los contratos de las operaciones de productos deben documentarse y validarse de forma consistente.
 - Las reglas de producto deben contar con pruebas automatizadas independientes de la base de datos y del transporte HTTP.
 - Las operaciones que modifiquen o consulten productos deben respetar el contrato de respuesta definido en esta spec.
-- Las respuestas de producto deben documentar los errores `400`, `404` y `409` cuando apliquen.
+- Las respuestas de producto deben documentar los errores `400`, `401`, `404` y `409` cuando apliquen.
 
 ## Casos límite
 
@@ -77,23 +78,27 @@ La primera capacidad de negocio del sistema es el catálogo de productos. Debe p
 - Búsqueda y estado aplicados simultáneamente.
 - Productos con el mismo valor en el campo de ordenamiento.
 - Actualización que solo contiene campos no definidos.
+- Creación de producto sin `categoryUuid`, con una categoría inexistente o con una categoría inactiva.
+- Desactivación lógica de un producto activo o ya inactivo mediante `DELETE /products/:uuid` con sesión válida.
 
 ## Fuera de alcance
 
-- Autenticación, autorización y roles de usuarios.
-- Categorías, existencias, movimientos de stock, compras y ventas.
+- Autorización y roles de usuarios.
+- Existencias, movimientos de stock, compras y ventas.
 - Eliminación física de productos.
 - Monedas, impuestos, descuentos o reglas que relacionen el precio de compra con el de venta.
 - Cambio del campo `isActive` por un campo `status`.
-- Endpoints independientes de activación o desactivación.
+- Endpoints independientes para activar o reactivar productos.
 
 ## Criterios de finalización
 
 - Todos los requisitos funcionales definidos y probados.
 - Los contratos de creación, consulta, listado y actualización de estado documentados.
 - Las reglas de SKU, nombre, precios, estado, búsqueda, orden y paginación cubiertas por pruebas automatizadas.
-- Los errores `400`, `404` y `409` documentados y cubiertos cuando apliquen.
+- Los errores `400`, `401`, `404` y `409` documentados y cubiertos cuando apliquen.
 - Los filtros acumulativos, el orden estable y la actualización sin campos reconocidos cubiertos por pruebas automatizadas.
+- La creación exige una categoría activa existente, según la evolución de categorías.
+- La desactivación lógica autenticada mediante `DELETE /products/:uuid` está documentada y cubierta por pruebas automatizadas.
 
 ## Dudas abiertas
 

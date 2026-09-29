@@ -44,6 +44,7 @@ describe("GET /health", () => {
         "/products/{uuid}": {
           get: expect.anything(),
           patch: expect.anything(),
+          delete: expect.anything(),
         },
         "/categories": {
           get: expect.anything(),
@@ -99,6 +100,26 @@ describe("GET /health", () => {
         categoryUuid: { type: "string", format: "uuid", nullable: true },
       },
     });
+    expect(
+      openApiDocument.components.securitySchemes.sessionCookie,
+    ).toMatchObject({
+      type: "apiKey",
+      in: "cookie",
+      name: "better-auth.session_token",
+    });
+    for (const operation of [
+      openApiDocument.paths["/products"].post,
+      openApiDocument.paths["/products/{uuid}"].patch,
+      openApiDocument.paths["/products/{uuid}"].delete,
+      openApiDocument.paths["/inventory/{productUuid}/entries"].post,
+      openApiDocument.paths["/inventory/{productUuid}/exits"].post,
+      openApiDocument.paths["/inventory/{productUuid}/adjustments"].post,
+    ]) {
+      expect(operation).toMatchObject({
+        security: [{ sessionCookie: [] }],
+        responses: { 401: expect.anything() },
+      });
+    }
     expect(docsResponse.status).toBe(200);
     expect(productsResponse.status).toBe(200);
     expect(categoriesResponse.status).toBe(200);

@@ -108,6 +108,17 @@ export const productDataResponseSchema = z
   .object({ data: productResponseSchema })
   .openapi("ProductDataResponse");
 
+export const deletedProductResponseSchema = z
+  .object({
+    uuid: z.string().uuid(),
+    isActive: z.literal(false),
+  })
+  .openapi("DeletedProduct");
+
+export const deletedProductDataResponseSchema = z
+  .object({ data: deletedProductResponseSchema })
+  .openapi("DeletedProductDataResponse");
+
 export const productListResponseSchema = z
   .object({
     data: z.array(productResponseSchema),
