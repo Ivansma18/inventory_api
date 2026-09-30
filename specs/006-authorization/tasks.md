@@ -15,7 +15,7 @@
 - [x] T5. Definir el contrato de repositorio y el caso de uso de consulta paginada de usuarios, usando un repositorio falso en las pruebas de aplicación. (RF-4, RF-21, RF-22)
       Hecho cuando: las pruebas de aplicación verifican que la consulta entrega `id`, `email`, `role` y el total recibido del repositorio sin depender de Prisma ni HTTP.
 
-- [ ] T6. Definir el caso de uso de cambio de rol y sus errores de usuario inexistente y último `ADMIN`, con pruebas sobre un repositorio falso. (RF-6, RF-9, RF-10, RF-11)
+- [x] T6. Definir el caso de uso de cambio de rol y sus errores de usuario inexistente y último `ADMIN`, con pruebas sobre un repositorio falso. (RF-6, RF-9, RF-10, RF-11)
       Hecho cuando: las pruebas verifican actualización de rol, propagación del resultado del repositorio, `UserNotFound` y rechazo del último administrador sin Hono ni PostgreSQL.
 
 - [ ] T7. Implementar la consulta Prisma paginada de usuarios, incluyendo conteo total y selección exclusiva de campos públicos, con pruebas de integración PostgreSQL. (RF-4, RF-21, RF-22)

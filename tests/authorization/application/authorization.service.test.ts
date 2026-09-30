@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { AuthorizationService } from "../../../src/features/authorization/application/authorization.service.js";
 import type {
+  AuthorizationUserSummary,
   AuthorizationRepository,
   UserListQuery,
   UserListResult,
@@ -16,6 +17,10 @@ class AuthorizationListSpyRepository implements AuthorizationRepository {
     this.receivedQuery = query;
 
     return this.result;
+  }
+
+  async changeUserRole(): Promise<AuthorizationUserSummary> {
+    throw new Error("changeUserRole should not be called");
   }
 }
 

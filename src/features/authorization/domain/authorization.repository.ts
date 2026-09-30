@@ -18,4 +18,8 @@ export interface UserListResult {
 
 export interface AuthorizationRepository {
   findUsers(query: UserListQuery): Promise<UserListResult>;
+  changeUserRole(
+    userId: string,
+    role: UserRole,
+  ): Promise<AuthorizationUserSummary>;
 }

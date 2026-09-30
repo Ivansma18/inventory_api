@@ -1,8 +1,10 @@
 import type {
+  AuthorizationUserSummary,
   AuthorizationRepository,
   UserListQuery,
   UserListResult,
 } from "../domain/authorization.repository.js";
+import type { UserRole } from "../domain/authorization.policy.js";
 
 export interface ListUsersInput {
   page?: number;
@@ -19,5 +21,12 @@ export class AuthorizationService {
     };
 
     return this.authorization.findUsers(query);
+  }
+
+  async changeUserRole(
+    userId: string,
+    role: UserRole,
+  ): Promise<AuthorizationUserSummary> {
+    return this.authorization.changeUserRole(userId, role);
   }
 }
