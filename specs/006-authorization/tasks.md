@@ -54,7 +54,7 @@
 - [x] T18. Añadir pruebas de contrato OpenAPI y regresión de rutas públicas para toda la fase de autorización. (RF-4, RF-5, RF-6, RF-7, RF-8, RF-9, RF-12, RF-13, RF-14, RF-15, RF-16, RF-17)
       Hecho cuando: `/openapi.json` documenta `sessionCookie`, `401` y `403` en todas las escrituras protegidas y los endpoints administrativos; las lecturas de negocio siguen sin seguridad de Authorization y los endpoints de autenticación conservan la Spec 005.
 
-- [ ] T19. Ejecutar la validación completa de la Spec 006 y revisar dependencias, cobertura de RF y migración. (RF-1 a RF-23)
+- [x] T19. Ejecutar la validación completa de la Spec 006 y revisar dependencias, cobertura de RF y migración. (RF-1 a RF-23)
       Hecho cuando: pasan `npm test`, `npm run typecheck`, `npm run lint`, `npm run format` y `git diff --check`; la revisión confirma migración, OpenAPI, errores, separación de capas, roles por endpoint y protección concurrente del último `ADMIN`.
 
 ## Orden y dependencias
