@@ -12,7 +12,7 @@
 - [x] T4. Implementar la guarda HTTP central de autorización, encadenada después de la autenticación, y probar sus respuestas de acceso permitido y denegado. (RF-5, RF-8, RF-16, RF-17)
       Hecho cuando: las pruebas verifican `401` sin sesión válida, `403` con sesión válida pero sin el permiso requerido, y continuidad cuando el rol sí está autorizado; los errores usan el formato estándar.
 
-- [ ] T5. Definir el contrato de repositorio y el caso de uso de consulta paginada de usuarios, usando un repositorio falso en las pruebas de aplicación. (RF-4, RF-21, RF-22)
+- [x] T5. Definir el contrato de repositorio y el caso de uso de consulta paginada de usuarios, usando un repositorio falso en las pruebas de aplicación. (RF-4, RF-21, RF-22)
       Hecho cuando: las pruebas de aplicación verifican que la consulta entrega `id`, `email`, `role` y el total recibido del repositorio sin depender de Prisma ni HTTP.
 
 - [ ] T6. Definir el caso de uso de cambio de rol y sus errores de usuario inexistente y último `ADMIN`, con pruebas sobre un repositorio falso. (RF-6, RF-9, RF-10, RF-11)
