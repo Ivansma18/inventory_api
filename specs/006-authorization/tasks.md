@@ -48,7 +48,7 @@
 - [x] T16. Aplicar permisos por rol a entradas, salidas y ajustes de stock, manteniendo públicas las consultas de movimientos. (RF-12, RF-13, RF-14, RF-15, RF-16, RF-17, RF-20)
       Hecho cuando: pruebas HTTP verifican que `ADMIN`, `MANAGER` y `OPERATOR` pueden registrar movimientos; `VIEWER` recibe `403`; sin sesión se recibe `401`; las lecturas siguen públicas y OpenAPI documenta `401`/`403`.
 
-- [ ] T17. Verificar que un cambio de rol se aplique en la siguiente petición de todas las sesiones activas del usuario sin volver a iniciar sesión. (RF-18, RF-19)
+- [x] T17. Verificar que un cambio de rol se aplique en la siguiente petición de todas las sesiones activas del usuario sin volver a iniciar sesión. (RF-18, RF-19)
       Hecho cuando: una prueba HTTP/PostgreSQL crea varias sesiones, cambia el rol mediante `PATCH /users/:id/role` y confirma que cada cookie ve el nuevo `user.role` y los permisos actualizados en su siguiente petición.
 
 - [ ] T18. Añadir pruebas de contrato OpenAPI y regresión de rutas públicas para toda la fase de autorización. (RF-4, RF-5, RF-6, RF-7, RF-8, RF-9, RF-12, RF-13, RF-14, RF-15, RF-16, RF-17)
