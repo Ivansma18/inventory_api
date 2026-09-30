@@ -6,7 +6,7 @@
 - [x] T2. Configurar el campo de rol persistido en Better Auth como no editable por clientes y exponerlo en las respuestas públicas de registro, login y consulta de sesión. (RF-2, RF-18)
       Hecho cuando: pruebas HTTP confirman que una cuenta nueva recibe `VIEWER`, que un `role: ADMIN` enviado en el registro no eleva privilegios, que registro/login/sesión incluyen `user.role` y que `session` conserva únicamente `id` y `createdAt`.
 
-- [ ] T3. Definir la política pura rol-permiso para `ADMIN`, `MANAGER`, `OPERATOR` y `VIEWER`, con pruebas unitarias de todos los permisos declarados y denegados. (RF-1, RF-12, RF-13, RF-14, RF-15, RF-16, RF-20)
+- [x] T3. Definir la política pura rol-permiso para `ADMIN`, `MANAGER`, `OPERATOR` y `VIEWER`, con pruebas unitarias de todos los permisos declarados y denegados. (RF-1, RF-12, RF-13, RF-14, RF-15, RF-16, RF-20)
       Hecho cuando: una matriz de pruebas cubre cada rol frente a escrituras de productos, categorías, stock mínimo, movimientos y administración de usuarios, sin Hono, Prisma ni PostgreSQL.
 
 - [ ] T4. Implementar la guarda HTTP central de autorización, encadenada después de la autenticación, y probar sus respuestas de acceso permitido y denegado. (RF-5, RF-8, RF-16, RF-17)
