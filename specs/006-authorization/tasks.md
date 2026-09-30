@@ -18,7 +18,7 @@
 - [x] T6. Definir el caso de uso de cambio de rol y sus errores de usuario inexistente y último `ADMIN`, con pruebas sobre un repositorio falso. (RF-6, RF-9, RF-10, RF-11)
       Hecho cuando: las pruebas verifican actualización de rol, propagación del resultado del repositorio, `UserNotFound` y rechazo del último administrador sin Hono ni PostgreSQL.
 
-- [ ] T7. Implementar la consulta Prisma paginada de usuarios, incluyendo conteo total y selección exclusiva de campos públicos, con pruebas de integración PostgreSQL. (RF-4, RF-21, RF-22)
+- [x] T7. Implementar la consulta Prisma paginada de usuarios, incluyendo conteo total y selección exclusiva de campos públicos, con pruebas de integración PostgreSQL. (RF-4, RF-21, RF-22)
       Hecho cuando: las pruebas verifican páginas, límites, `total`, campos `id/email/role` y omisión de datos privados; los valores predeterminados y límites inválidos se validan posteriormente en HTTP.
 
 - [ ] T8. Implementar el cambio de rol en el repositorio Prisma dentro de una transacción serializable y probar cambios válidos, usuario inexistente y último `ADMIN`. (RF-6, RF-9, RF-10, RF-11)
