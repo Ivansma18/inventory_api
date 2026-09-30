@@ -49,6 +49,10 @@ async function createSessionCookie(): Promise<string> {
   });
   const body = await response.json();
   createdUserIds.push(body.data.user.id);
+  await prisma.user.update({
+    where: { id: body.data.user.id },
+    data: { role: "ADMIN" },
+  });
 
   return response.headers.get("set-cookie")!.split(";")[0];
 }

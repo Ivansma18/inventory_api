@@ -45,7 +45,7 @@
 - [x] T15. Aplicar permisos por rol a `PATCH /inventory/:productUuid/minimum-stock`, manteniendo públicas las consultas de inventario. (RF-12, RF-13, RF-14, RF-15, RF-16, RF-17, RF-20)
       Hecho cuando: pruebas HTTP verifican permiso de `ADMIN`/`MANAGER`, `403` para `OPERATOR`/`VIEWER`, `401` sin sesión, lecturas públicas y respuestas OpenAPI `401`/`403`.
 
-- [ ] T16. Aplicar permisos por rol a entradas, salidas y ajustes de stock, manteniendo públicas las consultas de movimientos. (RF-12, RF-13, RF-14, RF-15, RF-16, RF-17, RF-20)
+- [x] T16. Aplicar permisos por rol a entradas, salidas y ajustes de stock, manteniendo públicas las consultas de movimientos. (RF-12, RF-13, RF-14, RF-15, RF-16, RF-17, RF-20)
       Hecho cuando: pruebas HTTP verifican que `ADMIN`, `MANAGER` y `OPERATOR` pueden registrar movimientos; `VIEWER` recibe `403`; sin sesión se recibe `401`; las lecturas siguen públicas y OpenAPI documenta `401`/`403`.
 
 - [ ] T17. Verificar que un cambio de rol se aplique en la siguiente petición de todas las sesiones activas del usuario sin volver a iniciar sesión. (RF-18, RF-19)
