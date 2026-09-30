@@ -24,7 +24,7 @@
 - [x] T8. Implementar el cambio de rol en el repositorio Prisma dentro de una transacción serializable y probar cambios válidos, usuario inexistente y último `ADMIN`. (RF-6, RF-9, RF-10, RF-11)
       Hecho cuando: pruebas PostgreSQL verifican persistencia del rol, `404` por usuario inexistente, `409` al intentar dejar cero administradores y auto-cambio permitido mientras permanezca otro `ADMIN`.
 
-- [ ] T9. Añadir una prueba PostgreSQL de cambios concurrentes que intenten degradar a los dos últimos `ADMIN` y ajustar el reintento transaccional si la prueba lo requiere. (RF-10, RF-11)
+- [x] T9. Añadir una prueba PostgreSQL de cambios concurrentes que intenten degradar a los dos últimos `ADMIN` y ajustar el reintento transaccional si la prueba lo requiere. (RF-10, RF-11)
       Hecho cuando: dos operaciones concurrentes no pueden confirmar un estado sin `ADMIN`; al menos una operación incompatible se rechaza con `409` y queda al menos un usuario `ADMIN`.
 
 - [ ] T10. Implementar `GET /users` con validación Zod, paginación, respuesta pública y contrato OpenAPI. (RF-4, RF-5, RF-17, RF-21, RF-22)

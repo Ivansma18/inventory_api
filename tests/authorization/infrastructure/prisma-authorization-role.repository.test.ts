@@ -126,6 +126,35 @@ describe("PrismaAuthorizationRepository.changeUserRole", () => {
       }),
     ).resolves.toEqual({ role: "ADMIN" });
   });
+
+  it("preserves an ADMIN during concurrent demotions of the last two admins", async () => {
+    const firstAdmin = await createUser("ADMIN");
+    const secondAdmin = await createUser("ADMIN");
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      if (attempt > 0) {
+        await getPrisma().user.updateMany({ data: { role: "ADMIN" } });
+      }
+
+      const results = await Promise.allSettled([
+        repository.changeUserRole(firstAdmin.id, "MANAGER"),
+        repository.changeUserRole(secondAdmin.id, "VIEWER"),
+      ]);
+      const rejected = results.filter(
+        (result): result is PromiseRejectedResult =>
+          result.status === "rejected",
+      );
+
+      expect(
+        results.filter((result) => result.status === "fulfilled"),
+      ).toHaveLength(1);
+      expect(rejected).toHaveLength(1);
+      expect(rejected[0]?.reason).toBeInstanceOf(LastAdminRoleChangeError);
+      await expect(
+        getPrisma().user.count({ where: { role: "ADMIN" } }),
+      ).resolves.toBe(1);
+    }
+  });
 });
 
 async function createUser(role: UserRole) {
