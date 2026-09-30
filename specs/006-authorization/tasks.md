@@ -9,7 +9,7 @@
 - [x] T3. Definir la política pura rol-permiso para `ADMIN`, `MANAGER`, `OPERATOR` y `VIEWER`, con pruebas unitarias de todos los permisos declarados y denegados. (RF-1, RF-12, RF-13, RF-14, RF-15, RF-16, RF-20)
       Hecho cuando: una matriz de pruebas cubre cada rol frente a escrituras de productos, categorías, stock mínimo, movimientos y administración de usuarios, sin Hono, Prisma ni PostgreSQL.
 
-- [ ] T4. Implementar la guarda HTTP central de autorización, encadenada después de la autenticación, y probar sus respuestas de acceso permitido y denegado. (RF-5, RF-8, RF-16, RF-17)
+- [x] T4. Implementar la guarda HTTP central de autorización, encadenada después de la autenticación, y probar sus respuestas de acceso permitido y denegado. (RF-5, RF-8, RF-16, RF-17)
       Hecho cuando: las pruebas verifican `401` sin sesión válida, `403` con sesión válida pero sin el permiso requerido, y continuidad cuando el rol sí está autorizado; los errores usan el formato estándar.
 
 - [ ] T5. Definir el contrato de repositorio y el caso de uso de consulta paginada de usuarios, usando un repositorio falso en las pruebas de aplicación. (RF-4, RF-21, RF-22)
