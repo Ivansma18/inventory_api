@@ -16,6 +16,25 @@ export const userListQuerySchema = z
   .strip()
   .openapi("AuthorizationUserListQuery");
 
+export const userRoleParamsSchema = z
+  .object({
+    id: z
+      .string()
+      .min(1)
+      .openapi({
+        param: { name: "id", in: "path" },
+        example: "user-id",
+      }),
+  })
+  .openapi("AuthorizationUserRoleParams");
+
+export const changeUserRoleSchema = z
+  .object({
+    role: z.enum(authorizationRoles).openapi({ example: "MANAGER" }),
+  })
+  .strip()
+  .openapi("ChangeUserRoleRequest");
+
 export const authorizationUserSummarySchema = z
   .object({
     id: z.string(),
@@ -23,6 +42,10 @@ export const authorizationUserSummarySchema = z
     role: z.enum(authorizationRoles),
   })
   .openapi("AuthorizationUserSummary");
+
+export const authorizationUserDataResponseSchema = z
+  .object({ data: authorizationUserSummarySchema })
+  .openapi("AuthorizationUserDataResponse");
 
 export const authorizationUserListResponseSchema = z
   .object({

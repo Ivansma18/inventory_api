@@ -30,7 +30,7 @@
 - [x] T10. Implementar `GET /users` con validación Zod, paginación, respuesta pública y contrato OpenAPI. (RF-4, RF-5, RF-17, RF-21, RF-22)
       Hecho cuando: pruebas HTTP verifican `200 { data, pagination }`, campos exactos, defaults `page=1/limit=15`, `400` para valores inválidos, `401` sin sesión y `403` para sesión válida no `ADMIN`; OpenAPI documenta estos contratos.
 
-- [ ] T11. Implementar `PATCH /users/:id/role` con validación de rol, respuesta pública, traducción de errores y contrato OpenAPI. (RF-6, RF-7, RF-8, RF-9, RF-10, RF-11, RF-17)
+- [x] T11. Implementar `PATCH /users/:id/role` con validación de rol, respuesta pública, traducción de errores y contrato OpenAPI. (RF-6, RF-7, RF-8, RF-9, RF-10, RF-11, RF-17)
       Hecho cuando: pruebas HTTP verifican `200` y `{ data: { id, email, role } }`, `400` para rol inválido, `401` sin sesión, `403` para no `ADMIN` autenticado, `404` para usuario inexistente y `409` al intentar eliminar al último administrador.
 
 - [ ] T12. Componer en `app.ts` el repositorio, los casos de uso, la guarda y las rutas de Authorization; configurar manualmente el primer `ADMIN` en pruebas de integración. (RF-3, RF-5, RF-8, RF-17)

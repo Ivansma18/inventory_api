@@ -18,6 +18,10 @@ export interface AuthorizationUserListResponse {
   };
 }
 
+export interface AuthorizationUserDataResponse {
+  data: AuthorizationUserResponse;
+}
+
 export function toAuthorizationUserListResponse(
   result: UserListResult,
   page: number,
@@ -29,6 +33,18 @@ export function toAuthorizationUserListResponse(
       total: result.total,
       page,
       limit,
+    },
+  };
+}
+
+export function toAuthorizationUserDataResponse(
+  user: AuthorizationUserSummary,
+): AuthorizationUserDataResponse {
+  return {
+    data: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
     },
   };
 }

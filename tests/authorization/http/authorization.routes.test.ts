@@ -5,6 +5,10 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { createAuthRoutes } from "../../../src/features/auth/http/auth.routes.js";
 import type { ListUsersInput } from "../../../src/features/authorization/application/authorization.service.js";
+import {
+  AuthorizationUserNotFoundError,
+  LastAdminRoleChangeError,
+} from "../../../src/features/authorization/domain/authorization.errors.js";
 import type { AuthorizationUserSummary } from "../../../src/features/authorization/domain/authorization.repository.js";
 import {
   createAuthorizationRoutes,
@@ -25,6 +29,14 @@ afterEach(async () => {
 
 function createService(
   receivedInputs: ListUsersInput[] = [],
+  changeUserRole: (
+    userId: string,
+    role: AuthorizationUserSummary["role"],
+  ) => Promise<AuthorizationUserSummary> = async (userId, role) => ({
+    id: userId,
+    email: "updated@example.com",
+    role,
+  }),
 ): AuthorizationHttpService {
   const users = [
     {
@@ -41,6 +53,7 @@ function createService(
 
       return { users, total: 42 };
     },
+    changeUserRole,
   };
 }
 
@@ -177,6 +190,152 @@ describe("Authorization user routes", () => {
     expect(receivedInputs).toEqual([]);
   });
 
+  it("updates a user's role and returns only the public summary", async () => {
+    const targetUserId = "managed-user-id";
+    const receivedChanges: Array<{ userId: string; role: string }> = [];
+    const app = createApp(
+      createService([], async (userId, role) => {
+        receivedChanges.push({ userId, role });
+
+        return {
+          id: userId,
+          email: "managed@example.com",
+          role,
+          name: "Private name",
+        } as unknown as AuthorizationUserSummary;
+      }),
+    );
+    const cookie = await createSessionCookie(app, "ADMIN");
+
+    const response = await app.request(`/users/${targetUserId}/role`, {
+      method: "PATCH",
+      headers: { cookie, "content-type": "application/json" },
+      body: JSON.stringify({ role: "MANAGER", ignored: "field" }),
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      data: {
+        id: targetUserId,
+        email: "managed@example.com",
+        role: "MANAGER",
+      },
+    });
+    expect(receivedChanges).toEqual([
+      { userId: targetUserId, role: "MANAGER" },
+    ]);
+  });
+
+  it("returns 400 for an unknown role without calling the service", async () => {
+    const receivedChanges: Array<{ userId: string; role: string }> = [];
+    const app = createApp(
+      createService([], async (userId, role) => {
+        receivedChanges.push({ userId, role });
+
+        return { id: userId, email: "user@example.com", role };
+      }),
+    );
+    const cookie = await createSessionCookie(app, "ADMIN");
+
+    const response = await app.request("/users/managed-user-id/role", {
+      method: "PATCH",
+      headers: { cookie, "content-type": "application/json" },
+      body: JSON.stringify({ role: "SUPERADMIN" }),
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Request validation failed.",
+      },
+    });
+    expect(receivedChanges).toEqual([]);
+  });
+
+  it("returns 401 without a session and 403 for a non-admin", async () => {
+    const receivedChanges: Array<{ userId: string; role: string }> = [];
+    const app = createApp(
+      createService([], async (userId, role) => {
+        receivedChanges.push({ userId, role });
+
+        return { id: userId, email: "user@example.com", role };
+      }),
+    );
+    const unauthenticated = await app.request("/users/managed-user-id/role", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ role: "VIEWER" }),
+    });
+    const viewerCookie = await createSessionCookie(app, "VIEWER");
+    const forbidden = await app.request("/users/managed-user-id/role", {
+      method: "PATCH",
+      headers: {
+        cookie: viewerCookie,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ role: "VIEWER" }),
+    });
+
+    expect(unauthenticated.status).toBe(401);
+    await expect(unauthenticated.json()).resolves.toEqual({
+      error: { code: "UNAUTHORIZED", message: "Authentication required" },
+    });
+    expect(forbidden.status).toBe(403);
+    await expect(forbidden.json()).resolves.toEqual({
+      error: {
+        code: "FORBIDDEN",
+        message: "You do not have permission to perform this operation.",
+      },
+    });
+    expect(receivedChanges).toEqual([]);
+  });
+
+  it("translates missing users and last-admin role changes", async () => {
+    const notFoundApp = createApp(
+      createService([], async () => {
+        throw new AuthorizationUserNotFoundError();
+      }),
+    );
+    const conflictApp = createApp(
+      createService([], async () => {
+        throw new LastAdminRoleChangeError();
+      }),
+    );
+    const notFoundCookie = await createSessionCookie(notFoundApp, "ADMIN");
+    const conflictCookie = await createSessionCookie(conflictApp, "ADMIN");
+    const [notFound, conflict] = await Promise.all([
+      notFoundApp.request("/users/missing-user/role", {
+        method: "PATCH",
+        headers: {
+          cookie: notFoundCookie,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ role: "MANAGER" }),
+      }),
+      conflictApp.request("/users/last-admin/role", {
+        method: "PATCH",
+        headers: {
+          cookie: conflictCookie,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ role: "VIEWER" }),
+      }),
+    ]);
+
+    expect(notFound.status).toBe(404);
+    await expect(notFound.json()).resolves.toEqual({
+      error: { code: "USER_NOT_FOUND", message: "User was not found." },
+    });
+    expect(conflict.status).toBe(409);
+    await expect(conflict.json()).resolves.toEqual({
+      error: {
+        code: "LAST_ADMIN_ROLE_CHANGE",
+        message: "The last ADMIN cannot be demoted.",
+      },
+    });
+  });
+
   it("documents query defaults, response fields, security, and errors in OpenAPI", async () => {
     const app = createApp(createService());
 
@@ -241,6 +400,30 @@ describe("Authorization user routes", () => {
           total: { type: "integer", minimum: 0 },
           page: { type: "integer", minimum: 1 },
           limit: { type: "integer", minimum: 1, maximum: 100 },
+        },
+      },
+    });
+
+    const updateRoleOperation = document.paths["/users/{id}/role"].patch;
+    expect(updateRoleOperation).toMatchObject({
+      security: [{ sessionCookie: [] }],
+      parameters: [expect.objectContaining({ name: "id", in: "path" })],
+      requestBody: { required: true },
+      responses: {
+        200: expect.anything(),
+        400: expect.anything(),
+        401: expect.anything(),
+        403: expect.anything(),
+        404: expect.anything(),
+        409: expect.anything(),
+      },
+    });
+    expect(document.components.schemas.ChangeUserRoleRequest).toMatchObject({
+      required: ["role"],
+      properties: {
+        role: {
+          type: "string",
+          enum: ["ADMIN", "MANAGER", "OPERATOR", "VIEWER"],
         },
       },
     });
