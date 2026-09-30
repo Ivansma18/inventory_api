@@ -33,7 +33,7 @@
 - [x] T11. Implementar `PATCH /users/:id/role` con validación de rol, respuesta pública, traducción de errores y contrato OpenAPI. (RF-6, RF-7, RF-8, RF-9, RF-10, RF-11, RF-17)
       Hecho cuando: pruebas HTTP verifican `200` y `{ data: { id, email, role } }`, `400` para rol inválido, `401` sin sesión, `403` para no `ADMIN` autenticado, `404` para usuario inexistente y `409` al intentar eliminar al último administrador.
 
-- [ ] T12. Componer en `app.ts` el repositorio, los casos de uso, la guarda y las rutas de Authorization; configurar manualmente el primer `ADMIN` en pruebas de integración. (RF-3, RF-5, RF-8, RF-17)
+- [x] T12. Componer en `app.ts` el repositorio, los casos de uso, la guarda y las rutas de Authorization; configurar manualmente el primer `ADMIN` en pruebas de integración. (RF-3, RF-5, RF-8, RF-17)
       Hecho cuando: las rutas administrativas reales devuelven `403` mientras solo haya cuentas `VIEWER`, funcionan tras promover manualmente una cuenta en PostgreSQL y no alteran el contrato de registro, login ni sign-out de la Spec 005.
 
 - [ ] T13. Aplicar permisos por rol a las escrituras de Products, preservando públicas sus lecturas y documentando `401`/`403` en OpenAPI. (RF-12, RF-13, RF-14, RF-15, RF-16, RF-17, RF-20)
