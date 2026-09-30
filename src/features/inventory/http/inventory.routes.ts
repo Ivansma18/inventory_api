@@ -1,10 +1,13 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import type { MiddlewareHandler } from "hono";
 
 import type { ListInventoryInput } from "../application/inventory.service.js";
 import type { Inventory } from "../domain/inventory.entity.js";
 import { InventoryProductNotFoundError } from "../domain/inventory.errors.js";
 import type { InventoryListResult } from "../domain/inventory.repository.js";
 import { errorHandler } from "../../../shared/errors/error-handler.js";
+import type { AuthMiddlewareEnv } from "../../../shared/middlewares/auth.middleware.js";
+import { createAuthorizationMiddleware } from "../../authorization/index.js";
 import {
   toInventoryListResponse,
   toInventoryResponse,
@@ -29,6 +32,7 @@ export interface InventoryHttpService {
 
 interface InventoryRoutesDependencies {
   service: InventoryHttpService;
+  authMiddleware?: MiddlewareHandler<AuthMiddlewareEnv>;
 }
 
 const listInventoryRoute = createRoute({
@@ -73,6 +77,7 @@ const updateMinimumStockRoute = createRoute({
   method: "patch",
   path: "/{productUuid}/minimum-stock",
   tags: ["Inventory"],
+  security: [{ sessionCookie: [] }],
   request: {
     params: inventoryParamsSchema,
     body: {
@@ -91,6 +96,14 @@ const updateMinimumStockRoute = createRoute({
       content: { "application/json": { schema: inventoryErrorResponseSchema } },
       description: "Invalid product UUID or minimum stock",
     },
+    401: {
+      content: { "application/json": { schema: inventoryErrorResponseSchema } },
+      description: "Authentication required",
+    },
+    403: {
+      content: { "application/json": { schema: inventoryErrorResponseSchema } },
+      description: "Insufficient inventory permissions",
+    },
     404: {
       content: { "application/json": { schema: inventoryErrorResponseSchema } },
       description: "Product inventory not found",
@@ -100,8 +113,9 @@ const updateMinimumStockRoute = createRoute({
 
 export function createInventoryRoutes({
   service,
-}: InventoryRoutesDependencies): OpenAPIHono {
-  const routes = new OpenAPIHono({
+  authMiddleware,
+}: InventoryRoutesDependencies): OpenAPIHono<AuthMiddlewareEnv> {
+  const routes = new OpenAPIHono<AuthMiddlewareEnv>({
     defaultHook: (result, context) => {
       if (!result.success) {
         return context.json(
@@ -116,6 +130,14 @@ export function createInventoryRoutes({
       }
     },
   });
+
+  if (authMiddleware) {
+    routes.use("/:productUuid/minimum-stock", authMiddleware);
+    routes.use(
+      "/:productUuid/minimum-stock",
+      createAuthorizationMiddleware("inventory:minimum-stock:update"),
+    );
+  }
 
   routes.openapi(listInventoryRoute, async (context) => {
     const input = context.req.valid("query");

@@ -80,7 +80,10 @@ const categoryRoutes = createCategoryRoutes({
   service: categoryService,
   authMiddleware,
 });
-const inventoryRoutes = createInventoryRoutes({ service: inventoryService });
+const inventoryRoutes = createInventoryRoutes({
+  service: inventoryService,
+  authMiddleware,
+});
 const productRoutes = createProductRoutes({
   service: productService,
   authMiddleware,

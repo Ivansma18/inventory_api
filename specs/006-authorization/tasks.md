@@ -42,7 +42,7 @@
 - [x] T14. Aplicar permisos por rol a las escrituras de Categories, incluyendo la eliminación de categorías sin productos y el rechazo de las que están en uso. (RF-12, RF-13, RF-14, RF-15, RF-16, RF-17, RF-20)
       Hecho cuando: pruebas HTTP verifican escrituras de `ADMIN`/`MANAGER`, rechazos `403` para `OPERATOR`/`VIEWER`, `401` sin sesión, `200` al eliminar una categoría sin productos, `409` si tiene productos y lecturas públicas; OpenAPI refleja `401`/`403`.
 
-- [ ] T15. Aplicar permisos por rol a `PATCH /inventory/:productUuid/minimum-stock`, manteniendo públicas las consultas de inventario. (RF-12, RF-13, RF-14, RF-15, RF-16, RF-17, RF-20)
+- [x] T15. Aplicar permisos por rol a `PATCH /inventory/:productUuid/minimum-stock`, manteniendo públicas las consultas de inventario. (RF-12, RF-13, RF-14, RF-15, RF-16, RF-17, RF-20)
       Hecho cuando: pruebas HTTP verifican permiso de `ADMIN`/`MANAGER`, `403` para `OPERATOR`/`VIEWER`, `401` sin sesión, lecturas públicas y respuestas OpenAPI `401`/`403`.
 
 - [ ] T16. Aplicar permisos por rol a entradas, salidas y ajustes de stock, manteniendo públicas las consultas de movimientos. (RF-12, RF-13, RF-14, RF-15, RF-16, RF-17, RF-20)
