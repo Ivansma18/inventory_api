@@ -2,6 +2,7 @@ import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import type { Context } from "hono";
 
 import { auth } from "../auth.config.js";
+import type { PublicAuthRole } from "../auth.types.js";
 import { toAuthResponse } from "./auth.mapper.js";
 import {
   authCredentialsSchema,
@@ -21,6 +22,7 @@ interface AuthResponseBody {
   user?: {
     id: string;
     email: string;
+    role: PublicAuthRole;
   };
   session?: {
     id: string;

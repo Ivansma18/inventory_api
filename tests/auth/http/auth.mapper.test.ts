@@ -10,6 +10,7 @@ describe("Authentication public mapper", () => {
       {
         id: "user-id",
         email: "user@example.com",
+        role: "MANAGER",
         name: "Private name",
         password: "should-not-be-returned",
         emailVerified: false,
@@ -31,6 +32,7 @@ describe("Authentication public mapper", () => {
         user: {
           id: "user-id",
           email: "user@example.com",
+          role: "MANAGER",
         },
         session: {
           id: "session-id",

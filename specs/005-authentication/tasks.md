@@ -22,7 +22,7 @@
       Hecho cuando: las tres operaciones responden `401` sin sesión, funcionan con sesión válida y las consultas de inventario y movimientos continúan públicas.
 
 - [x] T8. Registrar la feature de autenticación y sus schemas en `app.ts`, documentando los contratos públicos y errores aplicables en OpenAPI/Swagger. (RF-1, RF-2, RF-3, RF-5, RF-6, RF-7, RF-8, RF-10, RF-11, RF-13, RF-16, RF-23, RF-27)
-      Hecho cuando: `/openapi.json` y `/docs` exponen el registro con `name`, email y contraseña, las respuestas públicas limitadas a los campos de la spec y sin tokens ni secretos.
+      Hecho cuando: `/openapi.json` y `/docs` exponen el registro con `name`, email y contraseña, las respuestas públicas con `user.id`, `user.email`, la sesión permitida y sin tokens ni secretos.
 
 - [x] T9. Añadir pruebas de ciclo de vida de autenticación con PostgreSQL para registro con nombre obligatorio, login, sesión, sign-out, normalización, duplicados, validaciones y fallos de persistencia. (RF-1 a RF-15, RF-23, RF-24, RF-26, RF-27)
       Hecho cuando: la suite verifica nombre válido, ausente y vacío; el ciclo de vida, ausencia de contraseñas en texto plano y que los campos desconocidos se ignoran en registro, login y consulta de sesión.
@@ -31,7 +31,7 @@
       Hecho cuando: cerrar una sesión invalida solo esa sesión, devuelve `204`, rechaza su cookie posterior y mantiene operativas las demás sesiones del usuario.
 
 - [x] T11. Ejecutar la validación completa de la fase y comprobar compatibilidad con las rutas existentes, dependencias de capas, formato y documentación. (RF-1 a RF-27)
-      Hecho cuando: pasan `npm test`, `npm run typecheck`, `npm run lint`, `npm run format`, `git diff --check`, y se verifica que no se introducen roles, permisos ni protección accidental de lecturas.
+      Hecho cuando: pasan `npm test`, `npm run typecheck`, `npm run lint`, `npm run format`, `git diff --check`, y se verifica que esta fase no define ni evalúa permisos ni protege accidentalmente lecturas.
 
 ## Orden y dependencias
 
@@ -58,11 +58,11 @@
 | RF-3  | T2, T4, T9      | Email inválido responde `400` después de normalización.                            |
 | RF-4  | T2, T4, T9      | Contraseña menor de 8 caracteres responde `400`.                                   |
 | RF-5  | T1, T4, T9      | Email normalizado duplicado responde `409 EMAIL_ALREADY_REGISTERED`.               |
-| RF-6  | T3, T4, T8, T9  | Registro responde `201`, cookie y DTO público exacto.                              |
-| RF-7  | T3, T4, T8, T9  | Login responde `200`, cookie y DTO público exacto.                                 |
+| RF-6  | T3, T4, T8, T9  | Registro responde `201`, cookie y DTO público definido.                            |
+| RF-7  | T3, T4, T8, T9  | Login responde `200`, cookie y DTO público definido.                               |
 | RF-8  | T4, T8, T9      | Credenciales inválidas responden `401 UNAUTHORIZED`.                               |
 | RF-9  | T4, T5, T9      | Cookie creada en login autentica peticiones posteriores.                           |
-| RF-10 | T3, T4, T8, T9  | Consulta válida responde identidad y sesión pública.                               |
+| RF-10 | T3, T4, T8, T9  | Consulta válida responde identidad y sesión pública definidas.                     |
 | RF-11 | T5, T8, T9      | Consulta sin sesión responde `401 UNAUTHORIZED`.                                   |
 | RF-12 | T4, T10         | Sign-out invalida solo la sesión actual.                                           |
 | RF-13 | T4, T9, T10     | Sign-out sin sesión responde `204` idempotentemente.                               |
@@ -74,7 +74,7 @@
 | RF-19 | T6, T11         | `DELETE /products/:uuid` protegido y validado.                                     |
 | RF-20 | T7, T11         | Tres operaciones de movimientos protegidas y validadas.                            |
 | RF-21 | T5, T6, T7, T10 | Sesión válida permite continuar y conservar sesiones paralelas.                    |
-| RF-22 | T6, T7, T11     | No se evalúan roles ni permisos.                                                   |
+| RF-22 | T6, T7, T11     | Esta fase no define ni evalúa permisos.                                             |
 | RF-23 | T3, T4, T8, T9  | Ninguna respuesta expone contraseñas.                                              |
 | RF-24 | T1, T2, T9      | Persistencia usa contraseña protegida, nunca texto plano.                          |
 | RF-25 | T5, T10         | Cookie de sesión cerrada es rechazada posteriormente.                              |

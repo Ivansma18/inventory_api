@@ -61,6 +61,10 @@ describe("POST /products", () => {
       });
       const authBody = await authResponse.json();
       createdUserIds.push(authBody.data.user.id);
+      await prisma.user.update({
+        where: { id: authBody.data.user.id },
+        data: { role: "ADMIN" },
+      });
       const cookie = authResponse.headers.get("set-cookie")!.split(";")[0];
 
       const response = await app.request("/products", {

@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import type { MiddlewareHandler } from "hono";
 
 import type {
   CreateCategoryInput,
@@ -15,6 +16,8 @@ import {
   InvalidCategoryNameError,
 } from "../domain/category.errors.js";
 import { errorHandler } from "../../../shared/errors/error-handler.js";
+import type { AuthMiddlewareEnv } from "../../../shared/middlewares/auth.middleware.js";
+import { createAuthorizationMiddleware } from "../../authorization/index.js";
 import {
   toCategoryListResponse,
   toCategoryResponse,
@@ -40,12 +43,20 @@ export interface CategoryHttpService {
 
 interface CategoryRoutesDependencies {
   service: CategoryHttpService;
+  authMiddleware?: MiddlewareHandler<AuthMiddlewareEnv>;
 }
+
+const categoryWritePermissions = {
+  POST: "category:create",
+  PATCH: "category:update",
+  DELETE: "category:delete",
+} as const;
 
 const createCategoryRoute = createRoute({
   method: "post",
   path: "/",
   tags: ["Categories"],
+  security: [{ sessionCookie: [] }],
   request: {
     body: {
       content: {
@@ -62,6 +73,14 @@ const createCategoryRoute = createRoute({
     400: {
       content: { "application/json": { schema: categoryErrorResponseSchema } },
       description: "Invalid category data",
+    },
+    401: {
+      content: { "application/json": { schema: categoryErrorResponseSchema } },
+      description: "Authentication required",
+    },
+    403: {
+      content: { "application/json": { schema: categoryErrorResponseSchema } },
+      description: "Insufficient category permissions",
     },
     409: {
       content: { "application/json": { schema: categoryErrorResponseSchema } },
@@ -112,6 +131,7 @@ const updateCategoryRoute = createRoute({
   method: "patch",
   path: "/{uuid}",
   tags: ["Categories"],
+  security: [{ sessionCookie: [] }],
   request: {
     params: categoryParamsSchema,
     body: {
@@ -130,6 +150,14 @@ const updateCategoryRoute = createRoute({
       content: { "application/json": { schema: categoryErrorResponseSchema } },
       description: "Invalid category data or UUID",
     },
+    401: {
+      content: { "application/json": { schema: categoryErrorResponseSchema } },
+      description: "Authentication required",
+    },
+    403: {
+      content: { "application/json": { schema: categoryErrorResponseSchema } },
+      description: "Insufficient category permissions",
+    },
     404: {
       content: { "application/json": { schema: categoryErrorResponseSchema } },
       description: "Category not found",
@@ -145,6 +173,7 @@ const deleteCategoryRoute = createRoute({
   method: "delete",
   path: "/{uuid}",
   tags: ["Categories"],
+  security: [{ sessionCookie: [] }],
   request: { params: categoryParamsSchema },
   responses: {
     200: {
@@ -156,6 +185,14 @@ const deleteCategoryRoute = createRoute({
     400: {
       content: { "application/json": { schema: categoryErrorResponseSchema } },
       description: "Invalid category UUID",
+    },
+    401: {
+      content: { "application/json": { schema: categoryErrorResponseSchema } },
+      description: "Authentication required",
+    },
+    403: {
+      content: { "application/json": { schema: categoryErrorResponseSchema } },
+      description: "Insufficient category permissions",
     },
     404: {
       content: { "application/json": { schema: categoryErrorResponseSchema } },
@@ -170,8 +207,9 @@ const deleteCategoryRoute = createRoute({
 
 export function createCategoryRoutes({
   service,
-}: CategoryRoutesDependencies): OpenAPIHono {
-  const routes = new OpenAPIHono({
+  authMiddleware,
+}: CategoryRoutesDependencies): OpenAPIHono<AuthMiddlewareEnv> {
+  const routes = new OpenAPIHono<AuthMiddlewareEnv>({
     defaultHook: (result, context) => {
       if (!result.success) {
         return context.json(
@@ -186,6 +224,33 @@ export function createCategoryRoutes({
       }
     },
   });
+
+  if (authMiddleware) {
+    routes.use("*", async (context, next) => {
+      const permission =
+        categoryWritePermissions[
+          context.req.method as keyof typeof categoryWritePermissions
+        ];
+
+      if (!permission) {
+        return next();
+      }
+
+      return authMiddleware(context, next);
+    });
+    routes.use("*", async (context, next) => {
+      const permission =
+        categoryWritePermissions[
+          context.req.method as keyof typeof categoryWritePermissions
+        ];
+
+      if (!permission) {
+        return next();
+      }
+
+      return createAuthorizationMiddleware(permission)(context, next);
+    });
+  }
 
   routes.openapi(createCategoryRoute, async (context) => {
     const category = await service.createCategory(context.req.valid("json"));

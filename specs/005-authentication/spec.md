@@ -2,7 +2,7 @@
 
 ## Contexto y objetivo
 
-La API necesita identificar quién realiza cada petición antes de permitir operaciones de escritura. Esta fase incorpora registro mediante nombre, email y contraseña; inicio de sesión mediante email y contraseña; consulta y cierre de sesión; además de proteger las operaciones que modifican productos o inventario. La autorización por roles y permisos queda fuera de esta fase.
+La API necesita identificar quién realiza cada petición antes de permitir operaciones de escritura. Esta fase incorpora registro mediante nombre, email y contraseña; inicio de sesión mediante email y contraseña; consulta y cierre de sesión; además de proteger las operaciones que modifican productos o inventario. La autorización por roles y permisos, incluido el rol público del usuario, se define en la Spec 006.
 
 ## Usuarios / actores
 
@@ -27,7 +27,7 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - RF-4: SI la contraseña contiene menos de 8 caracteres, ENTONCES EL SISTEMA rechazará el registro con `400`.
 - RF-5: SI el email normalizado ya está registrado, ENTONCES EL SISTEMA rechazará el registro con `409` y código `EMAIL_ALREADY_REGISTERED` sin crear una segunda cuenta.
 - RF-6: CUANDO el registro sea correcto, EL SISTEMA creará automáticamente una sesión y devolverá `201` con `{ data: { user: { id, email }, session: { id, createdAt } } }` sin exponer la contraseña.
-- RF-7: CUANDO un usuario envíe credenciales válidas, EL SISTEMA iniciará una sesión autenticada y devolverá `200` con `{ data: { user: { id, email }, session: { id, createdAt } } }` sin exponer la contraseña.
+- RF-7: CUANDO un usuario envíe credenciales válidas, EL SISTEMA iniciará una sesión autenticada y devolverá `200` con `{ data: { user: { id, email }, session: { id, createdAt } }` sin exponer la contraseña.
 - RF-8: SI el email o la contraseña no coinciden con una cuenta existente, ENTONCES EL SISTEMA responderá `401` con `{ error: { code: "UNAUTHORIZED", message: "Authentication required" } }`.
 - RF-9: CUANDO el inicio de sesión sea correcto, EL SISTEMA establecerá la sesión del usuario para las siguientes peticiones autenticadas.
 - RF-10: CUANDO un usuario consulte su sesión con una sesión válida, EL SISTEMA devolverá `200` con `{ data: { user: { id, email }, session: { id, createdAt } } }` sin exponer la contraseña.
@@ -42,7 +42,7 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - RF-19: EL SISTEMA exigirá autenticación para `DELETE /products/:uuid`.
 - RF-20: EL SISTEMA exigirá autenticación para `POST /inventory/:productUuid/entries`, `POST /inventory/:productUuid/exits` y `POST /inventory/:productUuid/adjustments`.
 - RF-21: CUANDO una petición protegida tenga una sesión válida, EL SISTEMA permitirá que continúe hacia la operación solicitada.
-- RF-22: EL SISTEMA no aplicará roles ni permisos en esta fase.
+- RF-22: EL SISTEMA no definirá ni evaluará roles o permisos como parte de los comportamientos de esta fase.
 - RF-23: EL SISTEMA no expondrá contraseñas en ninguna respuesta.
 - RF-24: EL SISTEMA no almacenará contraseñas en texto plano.
 - RF-25: CUANDO la sesión actual sea cerrada, EL SISTEMA rechazará las peticiones posteriores que dependan de esa sesión sin invalidar otras sesiones activas del mismo usuario.
@@ -101,15 +101,13 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - Eliminación con UUID inválido.
 - Fallo de persistencia durante el registro, inicio o cierre de sesión.
 - Campos desconocidos durante el inicio o consulta de sesión.
-- Respuestas de autenticación sin tokens ni secretos de sesión.
+- Respuestas de autenticación con `user.id` y `user.email`, sin tokens ni secretos de sesión.
 - Respuestas de sesión sin `expiresAt` ni campos adicionales.
 - Intento de exponer la contraseña en respuestas o errores.
 
 ## Fuera de alcance
 
-- Roles `ADMIN`, `MANAGER`, `OPERATOR` y `VIEWER`.
-- Permisos específicos por operación.
-- Autorización basada en roles.
+- La definición y evaluación de roles, permisos y autorización basada en roles; estos comportamientos pertenecen a la Spec 006.
 - Verificación de email.
 - Recuperación o cambio de contraseña.
 - Autenticación multifactor.
@@ -132,7 +130,7 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - Las respuestas de autenticación no incluyen tokens ni secretos de sesión.
 - Las respuestas de sesión contienen exactamente `id` y `createdAt`.
 - Las sesiones no permanecen activas después de 400 días desde su creación.
-- No se introducen roles ni permisos.
+- Esta spec no define ni evalúa roles o permisos.
 - Las lecturas existentes continúan funcionando según el contrato actual.
 - Los contratos y errores de autenticación están documentados y probados.
 - La eliminación lógica de productos protegida por sesión conserva el registro y devuelve `uuid` e `isActive=false`.

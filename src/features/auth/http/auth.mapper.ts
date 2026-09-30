@@ -1,5 +1,6 @@
 import type {
   PublicAuthResponse,
+  PublicAuthRole,
   PublicAuthSession,
   PublicAuthUser,
 } from "../auth.types.js";
@@ -7,6 +8,7 @@ import type {
 interface AuthUserRecord {
   id: string;
   email: string;
+  role: PublicAuthRole;
   [key: string]: unknown;
 }
 
@@ -20,6 +22,7 @@ export function toPublicAuthUser(user: AuthUserRecord): PublicAuthUser {
   return {
     id: user.id,
     email: user.email,
+    role: user.role,
   };
 }
 

@@ -1,6 +1,9 @@
+export type PublicAuthRole = "ADMIN" | "MANAGER" | "OPERATOR" | "VIEWER";
+
 export interface PublicAuthUser {
   id: string;
   email: string;
+  role: PublicAuthRole;
 }
 
 export interface PublicAuthSession {

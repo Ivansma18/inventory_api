@@ -3,6 +3,9 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
 
 import { createAuthRoutes } from "./features/auth/index.js";
+import { createAuthorizationRoutes } from "./features/authorization/index.js";
+import { AuthorizationService } from "./features/authorization/application/authorization.service.js";
+import { PrismaAuthorizationRepository } from "./features/authorization/infrastructure/prisma-authorization.repository.js";
 import {
   createCategoryRoutes,
   type CategoryReader,
@@ -65,9 +68,22 @@ const inventoryService = new InventoryService(
 const stockMovementService = new StockMovementService(
   new PrismaStockMovementRepository(prisma),
 );
+const authorizationService = new AuthorizationService(
+  new PrismaAuthorizationRepository(prisma),
+);
 const authRoutes = createAuthRoutes();
-const categoryRoutes = createCategoryRoutes({ service: categoryService });
-const inventoryRoutes = createInventoryRoutes({ service: inventoryService });
+const authorizationRoutes = createAuthorizationRoutes({
+  service: authorizationService,
+  authMiddleware,
+});
+const categoryRoutes = createCategoryRoutes({
+  service: categoryService,
+  authMiddleware,
+});
+const inventoryRoutes = createInventoryRoutes({
+  service: inventoryService,
+  authMiddleware,
+});
 const productRoutes = createProductRoutes({
   service: productService,
   authMiddleware,
@@ -90,6 +106,7 @@ app.onError(errorHandler);
 
 app.openapi(healthRoute, (context) => context.json({ status: "ok" }, 200));
 app.route("/api/auth", authRoutes);
+app.route("/users", authorizationRoutes);
 app.route("/products", productRoutes);
 app.route("/categories", categoryRoutes);
 app.route("/inventory", inventoryRoutes);

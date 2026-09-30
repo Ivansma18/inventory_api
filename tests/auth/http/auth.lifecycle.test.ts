@@ -30,6 +30,7 @@ describe("Authentication lifecycle with PostgreSQL", () => {
         name: "Lifecycle user",
         email: `  ${email.toUpperCase()}  `,
         password,
+        role: "ADMIN",
         ignored: "registration field",
       }),
     });
@@ -39,7 +40,7 @@ describe("Authentication lifecycle with PostgreSQL", () => {
     createdUserIds.push(registered.data.user.id);
     expect(registered).toEqual({
       data: {
-        user: { id: registered.data.user.id, email },
+        user: { id: registered.data.user.id, email, role: "VIEWER" },
         session: {
           id: expect.any(String),
           createdAt: expect.any(String),
@@ -52,6 +53,7 @@ describe("Authentication lifecycle with PostgreSQL", () => {
       include: { accounts: true, sessions: true },
     });
     expect(persistedUser.email).toBe(email);
+    expect(persistedUser.role).toBe("VIEWER");
     expect(persistedUser.accounts).toHaveLength(1);
     expect(persistedUser.accounts[0].password).not.toBe(password);
     expect(persistedUser.accounts[0].password).not.toContain(password);
@@ -72,7 +74,11 @@ describe("Authentication lifecycle with PostgreSQL", () => {
     });
     expect(login.status).toBe(200);
     const loginBody = await login.json();
-    expect(loginBody.data.user).toEqual({ id: registered.data.user.id, email });
+    expect(loginBody.data.user).toEqual({
+      id: registered.data.user.id,
+      email,
+      role: "VIEWER",
+    });
     expect(Object.keys(loginBody.data.session)).toEqual(["id", "createdAt"]);
 
     const session = await app.request(
@@ -82,7 +88,7 @@ describe("Authentication lifecycle with PostgreSQL", () => {
     expect(session.status).toBe(200);
     await expect(session.json()).resolves.toEqual({
       data: {
-        user: { id: registered.data.user.id, email },
+        user: { id: registered.data.user.id, email, role: "VIEWER" },
         session: {
           id: loginBody.data.session.id,
           createdAt: expect.any(String),

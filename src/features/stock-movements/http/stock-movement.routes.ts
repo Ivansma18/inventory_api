@@ -14,6 +14,7 @@ import {
 } from "../domain/stock-movement.errors.js";
 import { errorHandler } from "../../../shared/errors/error-handler.js";
 import type { AuthMiddlewareEnv } from "../../../shared/middlewares/auth.middleware.js";
+import { createAuthorizationMiddleware } from "../../authorization/index.js";
 import { toStockMovementResponse } from "./stock-movement.mapper.js";
 import {
   adjustStockSchema,
@@ -62,6 +63,12 @@ const stockMovementCreationResponses = {
       "application/json": { schema: stockMovementErrorResponseSchema },
     },
     description: "Authentication required",
+  },
+  403: {
+    content: {
+      "application/json": { schema: stockMovementErrorResponseSchema },
+    },
+    description: "Insufficient stock movement permissions",
   },
   404: {
     content: {
@@ -156,6 +163,18 @@ export function createStockMovementInventoryRoutes({
 
       return authMiddleware(context, next);
     });
+    routes.use(
+      "/:productUuid/entries",
+      createAuthorizationMiddleware("stock-movement:entry"),
+    );
+    routes.use(
+      "/:productUuid/exits",
+      createAuthorizationMiddleware("stock-movement:exit"),
+    );
+    routes.use(
+      "/:productUuid/adjustments",
+      createAuthorizationMiddleware("stock-movement:adjust"),
+    );
   }
 
   routes.openapi(createStockEntryRoute, async (context) => {
