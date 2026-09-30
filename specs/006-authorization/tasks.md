@@ -36,7 +36,7 @@
 - [x] T12. Componer en `app.ts` el repositorio, los casos de uso, la guarda y las rutas de Authorization; configurar manualmente el primer `ADMIN` en pruebas de integración. (RF-3, RF-5, RF-8, RF-17)
       Hecho cuando: las rutas administrativas reales devuelven `403` mientras solo haya cuentas `VIEWER`, funcionan tras promover manualmente una cuenta en PostgreSQL y no alteran el contrato de registro, login ni sign-out de la Spec 005.
 
-- [ ] T13. Aplicar permisos por rol a las escrituras de Products, preservando públicas sus lecturas y documentando `401`/`403` en OpenAPI. (RF-12, RF-13, RF-14, RF-15, RF-16, RF-17, RF-20)
+- [x] T13. Aplicar permisos por rol a las escrituras de Products, preservando públicas sus lecturas y documentando `401`/`403` en OpenAPI. (RF-12, RF-13, RF-14, RF-15, RF-16, RF-17, RF-20)
       Hecho cuando: pruebas HTTP verifican que `ADMIN` y `MANAGER` pueden escribir; `OPERATOR` y `VIEWER` reciben `403`; sin sesión se recibe `401`; y las lecturas siguen públicas.
 
 - [ ] T14. Aplicar permisos por rol a las escrituras de Categories, incluyendo la eliminación de categorías sin productos y el rechazo de las que están en uso. (RF-12, RF-13, RF-14, RF-15, RF-16, RF-17, RF-20)

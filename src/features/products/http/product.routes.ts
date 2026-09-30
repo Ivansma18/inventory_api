@@ -20,6 +20,7 @@ import {
 } from "../domain/product.errors.js";
 import { errorHandler } from "../../../shared/errors/error-handler.js";
 import type { AuthMiddlewareEnv } from "../../../shared/middlewares/auth.middleware.js";
+import { createAuthorizationMiddleware } from "../../authorization/index.js";
 import { toProductListResponse, toProductResponse } from "./product.mapper.js";
 import {
   createProductSchema,
@@ -44,6 +45,12 @@ interface ProductRoutesDependencies {
   service: ProductHttpService;
   authMiddleware?: MiddlewareHandler<AuthMiddlewareEnv>;
 }
+
+const productWritePermissions = {
+  POST: "product:create",
+  PATCH: "product:update",
+  DELETE: "product:deactivate",
+} as const;
 
 const createProductRoute = createRoute({
   method: "post",
@@ -70,6 +77,10 @@ const createProductRoute = createRoute({
     401: {
       content: { "application/json": { schema: errorResponseSchema } },
       description: "Authentication required",
+    },
+    403: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "Insufficient product permissions",
     },
     409: {
       content: { "application/json": { schema: errorResponseSchema } },
@@ -152,6 +163,10 @@ const updateProductRoute = createRoute({
       content: { "application/json": { schema: errorResponseSchema } },
       description: "Authentication required",
     },
+    403: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "Insufficient product permissions",
+    },
     404: {
       content: { "application/json": { schema: errorResponseSchema } },
       description: "Product not found",
@@ -187,6 +202,10 @@ const deleteProductRoute = createRoute({
       content: { "application/json": { schema: errorResponseSchema } },
       description: "Authentication required",
     },
+    403: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "Insufficient product permissions",
+    },
     404: {
       content: { "application/json": { schema: errorResponseSchema } },
       description: "Product not found",
@@ -216,11 +235,28 @@ export function createProductRoutes({
 
   if (authMiddleware) {
     routes.use("*", async (context, next) => {
-      if (!["POST", "PATCH", "DELETE"].includes(context.req.method)) {
+      const permission =
+        productWritePermissions[
+          context.req.method as keyof typeof productWritePermissions
+        ];
+
+      if (!permission) {
         return next();
       }
 
       return authMiddleware(context, next);
+    });
+    routes.use("*", async (context, next) => {
+      const permission =
+        productWritePermissions[
+          context.req.method as keyof typeof productWritePermissions
+        ];
+
+      if (!permission) {
+        return next();
+      }
+
+      return createAuthorizationMiddleware(permission)(context, next);
     });
   }
 
