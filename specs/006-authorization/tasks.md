@@ -51,7 +51,7 @@
 - [x] T17. Verificar que un cambio de rol se aplique en la siguiente petición de todas las sesiones activas del usuario sin volver a iniciar sesión. (RF-18, RF-19)
       Hecho cuando: una prueba HTTP/PostgreSQL crea varias sesiones, cambia el rol mediante `PATCH /users/:id/role` y confirma que cada cookie ve el nuevo `user.role` y los permisos actualizados en su siguiente petición.
 
-- [ ] T18. Añadir pruebas de contrato OpenAPI y regresión de rutas públicas para toda la fase de autorización. (RF-4, RF-5, RF-6, RF-7, RF-8, RF-9, RF-12, RF-13, RF-14, RF-15, RF-16, RF-17)
+- [x] T18. Añadir pruebas de contrato OpenAPI y regresión de rutas públicas para toda la fase de autorización. (RF-4, RF-5, RF-6, RF-7, RF-8, RF-9, RF-12, RF-13, RF-14, RF-15, RF-16, RF-17)
       Hecho cuando: `/openapi.json` documenta `sessionCookie`, `401` y `403` en todas las escrituras protegidas y los endpoints administrativos; las lecturas de negocio siguen sin seguridad de Authorization y los endpoints de autenticación conservan la Spec 005.
 
 - [ ] T19. Ejecutar la validación completa de la Spec 006 y revisar dependencias, cobertura de RF y migración. (RF-1 a RF-23)
