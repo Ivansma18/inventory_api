@@ -4,6 +4,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 
 import { prisma } from "../../shared/database/prisma.js";
 import { env } from "../../shared/config/env.js";
+import { createTrustedOrigins } from "./trusted-origins.js";
 
 const sessionLifetimeSeconds = 60 * 60 * 24 * 400;
 
@@ -20,7 +21,7 @@ export const auth = betterAuth({
   },
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
-  trustedOrigins: [env.BETTER_AUTH_URL],
+  trustedOrigins: createTrustedOrigins(env.BETTER_AUTH_URL, env.NODE_ENV),
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,

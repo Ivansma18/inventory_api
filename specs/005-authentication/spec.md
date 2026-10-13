@@ -49,6 +49,9 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - RF-26: CUANDO el cliente envíe campos no reconocidos durante el registro, inicio de sesión o consulta de sesión, EL SISTEMA los ignorará y procesará únicamente los campos definidos para la operación.
 - RF-27: EL SISTEMA no incluirá tokens, secretos, `expiresAt` ni otros campos adicionales en `session` dentro de las respuestas de registro, inicio de sesión o consulta de sesión.
 - RF-28: CUANDO un usuario autenticado solicite `DELETE /products/:uuid` para un producto existente, EL SISTEMA establecerá `isActive=false`, conservará el producto y devolverá `200` con `{ data: { uuid, isActive: false } }`.
+- RF-29: MIENTRAS la API se ejecute con `NODE_ENV=development`, EL SISTEMA confiará en el origen exacto `http://localhost:5174` para solicitudes de autenticación y conservará `BETTER_AUTH_URL` como origen confiable.
+- RF-30: MIENTRAS la API se ejecute fuera de `development`, EL SISTEMA no agregará automáticamente `http://localhost:5174` a los orígenes confiables.
+- RF-31: SI Better Auth devuelve una respuesta HTTP no exitosa durante sign-out, EL SISTEMA no afirmará que el cierre fue exitoso y traducirá el error al formato estándar de la API.
 
 ## Requisitos no funcionales
 
@@ -64,6 +67,8 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - Las pruebas no expondrán credenciales reales ni secretos.
 - La identidad autenticada estará disponible para las capas que necesiten registrar el usuario de la petición.
 - Las operaciones de lectura existentes permanecerán públicas, salvo que una decisión posterior indique lo contrario.
+- El origen local del frontend se permitirá únicamente en desarrollo; no se usarán comodines de origen.
+- Un error del handler Better Auth durante sign-out no se presentará como respuesta exitosa `204` ni se devolverá con un cuerpo sin validar.
 
 ## Casos límite
 
@@ -95,6 +100,8 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - Cookie válida cuyo identificador no corresponde a una sesión existente.
 - Cookie manipulada.
 - Cierre de sesión de una sesión ya cerrada.
+- Inicio de sesión desde `http://localhost:5174` con backend en desarrollo y rechazo de ese origen en producción.
+- Respuesta no exitosa del handler Better Auth durante sign-out.
 - Eliminación lógica de un producto activo.
 - Eliminación lógica repetida de un producto ya inactivo.
 - Eliminación de un producto inexistente.
@@ -134,6 +141,8 @@ La API necesita identificar quién realiza cada petición antes de permitir oper
 - Las lecturas existentes continúan funcionando según el contrato actual.
 - Los contratos y errores de autenticación están documentados y probados.
 - La eliminación lógica de productos protegida por sesión conserva el registro y devuelve `uuid` e `isActive=false`.
+- Better Auth conserva `BETTER_AUTH_URL` y solo confía automáticamente en `http://localhost:5174` cuando `NODE_ENV=development`.
+- Un sign-out correcto o idempotente responde `204`; una respuesta no exitosa del handler Better Auth se traduce al error estándar en vez de reportarse como cierre confirmado.
 
 ## Dudas abiertas
 

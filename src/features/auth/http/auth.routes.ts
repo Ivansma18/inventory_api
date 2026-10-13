@@ -7,7 +7,10 @@ import { toAuthResponse } from "./auth.mapper.js";
 import {
   authCredentialsSchema,
   authEmailAlreadyRegisteredResponseSchema,
+  authForbiddenResponseSchema,
+  authInternalErrorResponseSchema,
   authRegistrationSchema,
+  authSignOutErrorResponseSchema,
   authUnauthorizedResponseSchema,
   authValidationErrorResponseSchema,
   publicAuthResponseSchema,
@@ -43,6 +46,15 @@ const authValidationErrorResponse = {
 };
 const authUnauthorizedResponse = {
   content: { "application/json": { schema: authUnauthorizedResponseSchema } },
+};
+const authForbiddenResponse = {
+  content: { "application/json": { schema: authForbiddenResponseSchema } },
+};
+const authInternalErrorResponse = {
+  content: { "application/json": { schema: authInternalErrorResponseSchema } },
+};
+const authSignOutErrorResponse = {
+  content: { "application/json": { schema: authSignOutErrorResponseSchema } },
 };
 
 const signUpRoute = createRoute({
@@ -102,6 +114,15 @@ const signOutRoute = createRoute({
   tags: ["Authentication"],
   responses: {
     204: { description: "Current session closed" },
+    400: {
+      ...authSignOutErrorResponse,
+      description: "Sign-out request rejected",
+    },
+    403: { ...authForbiddenResponse, description: "Untrusted request origin" },
+    500: {
+      ...authInternalErrorResponse,
+      description: "Unable to close the session",
+    },
   },
 });
 
@@ -113,6 +134,10 @@ export function createAuthRoutes(): OpenAPIHono {
     const path = new URL(context.req.url).pathname;
 
     if (path.endsWith(signOutPath)) {
+      if (!response.ok) {
+        return mapAuthError(path, response.status, await readJson(response));
+      }
+
       return new Response(null, {
         status: 204,
         headers: copyResponseHeaders(response),
@@ -233,6 +258,19 @@ function mapAuthError(
     return unauthorizedResponse();
   }
 
+  if (
+    path.endsWith(signOutPath) &&
+    status >= 400 &&
+    status < 500 &&
+    /^[A-Z][A-Z0-9_]*$/.test(errorCode)
+  ) {
+    return errorResponse(
+      status,
+      errorCode,
+      "The sign-out request was rejected.",
+    );
+  }
+
   return errorResponse(
     status >= 400 && status < 500 ? 400 : 500,
     "VALIDATION_ERROR",
@@ -254,10 +292,21 @@ function errorResponse(
 
 function copyResponseHeaders(response: Response): Headers {
   const headers = new Headers();
+  const setCookieHeaders = response.headers.getSetCookie();
+
   response.headers.forEach((value, key) => {
-    if (key !== "content-length" && key !== "content-type") {
+    if (
+      key !== "content-length" &&
+      key !== "content-type" &&
+      key !== "set-cookie"
+    ) {
       headers.set(key, value);
     }
   });
+
+  for (const setCookie of setCookieHeaders) {
+    headers.append("set-cookie", setCookie);
+  }
+
   return headers;
 }

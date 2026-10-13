@@ -66,6 +66,22 @@ export const authUnauthorizedResponseSchema = authErrorSchema(
   "AuthUnauthorizedResponse",
   "UNAUTHORIZED",
 );
+export const authForbiddenResponseSchema = authErrorSchema(
+  "AuthForbiddenResponse",
+  "FORBIDDEN",
+);
+export const authInternalErrorResponseSchema = authErrorSchema(
+  "AuthInternalErrorResponse",
+  "INTERNAL_ERROR",
+);
+export const authSignOutErrorResponseSchema = z
+  .object({
+    error: z.object({
+      code: z.string().regex(/^[A-Z][A-Z0-9_]*$/),
+      message: z.string(),
+    }),
+  })
+  .openapi("AuthSignOutErrorResponse");
 export const authEmailAlreadyRegisteredResponseSchema = authErrorSchema(
   "AuthEmailAlreadyRegisteredResponse",
   "EMAIL_ALREADY_REGISTERED",

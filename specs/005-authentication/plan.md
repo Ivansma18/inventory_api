@@ -11,8 +11,8 @@ La autorización por roles y permisos queda fuera de alcance. Las lecturas exist
 | Módulo                                                                                 | Responsabilidad                                                                                                                                                            | RF cubiertos                                          |
 | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
 | `prisma/schema.prisma` y migración de autenticación                                    | Añadir las entidades persistentes requeridas por Better Auth para usuarios, sesiones, cuentas y verificaciones, con unicidad de email y token de sesión.                   | RF-1, RF-5, RF-7, RF-12, RF-14, RF-24                 |
-| `src/features/auth/auth.config.ts`                                                     | Construir la instancia de Better Auth con email/contraseña habilitado, sin verificación de email, adaptador Prisma y configuración de cookies/sesiones.                    | RF-3 a RF-15, RF-23, RF-24, RF-27                     |
-| `src/features/auth/auth.routes.ts`                                                     | Exponer el handler de Better Auth para registro con nombre, email y contraseña; login, consulta de sesión y sign-out bajo la base pública de autenticación.                | RF-1 a RF-15, RF-23, RF-26, RF-27                     |
+| `src/features/auth/auth.config.ts`                                                     | Construir la instancia de Better Auth con email/contraseña habilitado, sin verificación de email, adaptador Prisma, configuración de cookies/sesiones y orígenes confiables por entorno. | RF-3 a RF-15, RF-23, RF-24, RF-27, RF-29, RF-30 |
+| `src/features/auth/auth.routes.ts`                                                     | Exponer el handler de Better Auth para registro con nombre, email y contraseña; login, consulta de sesión y sign-out bajo la base pública, sin ocultar fallos de sign-out. | RF-1 a RF-15, RF-23, RF-26, RF-27, RF-31 |
 | `src/features/auth/auth.types.ts`                                                      | Definir los tipos públicos de identidad, metadatos de sesión y contexto de identidad autenticada, sin incluir secretos.                                                   | RF-6, RF-7, RF-10, RF-23, RF-27                       |
 | `src/features/auth/index.ts`                                                           | Exponer únicamente la API pública de la feature auth para la composition root.                                                                                             | RF-1 a RF-15                                          |
 | `src/shared/middlewares/auth.middleware.ts`                                            | Leer la cookie de sesión, validar la sesión con Better Auth, inyectar la identidad pública en el contexto y devolver el error estándar cuando no exista una sesión válida. | RF-9, RF-11, RF-16, RF-21, RF-25                      |
@@ -47,6 +47,7 @@ La autorización por roles y permisos queda fuera de alcance. Las lecturas exist
 - La consulta de sesión válida devolverá `200` con la misma forma pública de usuario y sesión.
 - El sign-out invalidará solo la sesión asociada a la cookie actual y devolverá `204`.
 - El sign-out sin sesión válida también devolverá `204` y eliminará cualquier cookie de sesión recibida.
+- Si el handler de Better Auth devuelve una respuesta no exitosa durante sign-out, la API traducirá el error al formato estándar y no informará `204`.
 - Las credenciales inválidas, las sesiones ausentes y las sesiones inválidas devolverán `401` con `{ error: { code: "UNAUTHORIZED", message: "Authentication required" } }`.
 - Un email duplicado devolverá `409` con código `EMAIL_ALREADY_REGISTERED`.
 - Los errores de validación de email o contraseña devolverán `400` en el formato estándar del proyecto.
@@ -92,6 +93,13 @@ La autorización por roles y permisos queda fuera de alcance. Las lecturas exist
 - Descartada: devolver tokens para que el cliente los envíe manualmente. Contradiría el contrato aprobado y ampliaría la superficie de exposición de credenciales.
 - RF cubiertos: RF-9, RF-12, RF-13, RF-14, RF-25, RF-27.
 
+### Origen local de autenticación limitado a development
+
+- Elegida: conservar `BETTER_AUTH_URL` en todos los entornos y agregar el origen exacto `http://localhost:5174` a `trustedOrigins` únicamente cuando `NODE_ENV=development`.
+- Descartada: confiar en el origen local en todos los entornos o permitir comodines, porque ampliaría innecesariamente la superficie de solicitudes confiables en test/production.
+- Verificación: probar la lista resultante para development, test y production sin cargar persistencia.
+- RF cubiertos: RF-29, RF-30.
+
 ### Middleware selectivo en la composition root
 
 - Elegida: aplicar el middleware de autenticación únicamente a los métodos de escritura indicados por la spec y dejar las consultas públicas.
@@ -116,6 +124,13 @@ La autorización por roles y permisos queda fuera de alcance. Las lecturas exist
 - Descartada: documentar solo el handler genérico sin validar sus respuestas contra el contrato público. Podría publicar campos sensibles o incompatibles.
 - RF cubiertos: RF-3 a RF-8, RF-10, RF-11, RF-13, RF-16, RF-23, RF-27.
 
+### Respuestas no exitosas de sign-out
+
+- Elegida: normalizar a `204` solo cuando Better Auth confirma una respuesta exitosa; traducir respuestas no exitosas mediante `mapAuthError`.
+- Descartada: forzar `204` ante cualquier respuesta interna, porque oculta errores y presenta como cerrada una sesión que puede seguir activa.
+- Verificación: simular una respuesta no exitosa del handler, comprobar que se traduce a un error estándar y no se devuelve `204`; conservar pruebas del cierre correcto `204` → `401`.
+- RF cubiertos: RF-31.
+
 ## Estrategia de pruebas
 
 | RF                           | Prueba                                                                                                                       | Nivel                         | Evidencia esperada                                                                                            |
@@ -124,7 +139,7 @@ La autorización por roles y permisos queda fuera de alcance. Las lecturas exist
 | RF-5                         | Registrar dos veces el mismo email y repetir con diferencias de mayúsculas/espacios.                                         | integración HTTP + PostgreSQL | Una sola cuenta y `409 EMAIL_ALREADY_REGISTERED`.                                                             |
 | RF-7, RF-8, RF-9             | Iniciar sesión con credenciales válidas, email inexistente y contraseña incorrecta.                                          | integración HTTP              | `200` con cookie y DTO público; errores genéricos `401`.                                                      |
 | RF-10, RF-11                 | Consultar sesión con cookie válida, ausente, manipulada y asociada a sesión inexistente.                                     | integración HTTP              | `200` con exactamente `user.id`, `user.email`, `session.id`, `session.createdAt`; errores `401` estándar.              |
-| RF-12, RF-13, RF-25          | Cerrar sesión con cookie válida, ausente y ya cerrada; intentar usar la cookie después.                                      | integración HTTP + PostgreSQL | `204`; sesión actual inválida; otras sesiones del mismo usuario siguen funcionando.                           |
+| RF-12, RF-13, RF-25          | Cerrar sesión con cookie válida, ausente y ya cerrada; consultar la cookie después.                                          | integración HTTP + PostgreSQL | `204`; sesión actual inválida; otras sesiones del mismo usuario siguen funcionando.                           |
 | RF-14                        | Mantener una sesión válida durante su vigencia y consultar una sesión creada con más de 400 días.                            | integración HTTP              | La sesión funciona antes del límite y deja de ser válida después de 400 días.                                 |
 | RF-15                        | Iniciar sesión inmediatamente después del registro sin verificación de email.                                                | integración HTTP              | Login permitido sin flujo de verificación.                                                                    |
 | RF-16, RF-21                 | Ejecutar cada ruta protegida sin cookie y con cookie válida.                                                                 | integración HTTP              | Sin cookie: `401 UNAUTHORIZED`; con cookie: la petición continúa.                                             |
@@ -132,11 +147,12 @@ La autorización por roles y permisos queda fuera de alcance. Las lecturas exist
 | RF-22                        | Ejecutar operaciones autenticadas sin activar la autorización de la Spec 006.                                                | integración HTTP              | La sesión es suficiente; esta fase no define ni evalúa permisos.                                               |
 | RF-23, RF-24, RF-27          | Inspeccionar respuestas, cookie y filas persistidas tras registro/login.                                                     | integración HTTP + PostgreSQL | No aparecen contraseñas, tokens, secretos ni `expiresAt` en respuestas; la contraseña no está en texto plano. |
 | RF-28                        | Eliminar lógicamente un producto con sesión válida, repetir la operación y usar UUID inválido/inexistente.                   | integración HTTP + PostgreSQL | Responde `200`, conserva el producto con `isActive=false`, y devuelve `400`/`404` según el error.             |
+| RF-31                        | Simular una respuesta no exitosa de Better Auth durante sign-out.                                                             | HTTP                           | No devuelve `204`; devuelve error normalizado y conserva los encabezados pertinentes.                         |
 | RF-26                        | Enviar campos desconocidos en registro, login y consulta de sesión.                                                          | integración HTTP              | Los campos desconocidos se ignoran y no alteran la cuenta ni la sesión.                                       |
 
 ## Riesgos y dudas abiertas
 
 - Riesgo controlado: el esquema interno de Better Auth requiere `expiresAt` para persistencia aunque la respuesta pública no lo exponga. La prueba debe verificar que la sesión sea válida dentro de 400 días y deje de aceptarse después del límite.
-- Riesgo controlado: las cookies requieren configuración coherente de CORS y credenciales cuando el cliente esté en otro origen. La prueba HTTP debe cubrir el envío y recepción de la cookie sin incluir secretos en logs.
+- Riesgo controlado: las cookies requieren configuración coherente de CORS y credenciales cuando el cliente esté en otro origen. El origen exacto del frontend local se permite solo en development; la prueba HTTP debe cubrir el envío y recepción de la cookie sin incluir secretos en logs.
 - Riesgo controlado: los endpoints estándar de Better Auth pueden no ser rutas OpenAPI nativas. El contrato público debe verificarse en `/openapi.json` sin exponer campos internos.
 - Dudas abiertas: ninguna.

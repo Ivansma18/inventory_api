@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 
 import { Hono } from "hono";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { auth } from "../../../src/features/auth/auth.config.js";
 import { createAuthRoutes } from "../../../src/features/auth/http/auth.routes.js";
 import { prisma } from "../../../src/shared/database/prisma.js";
 
@@ -124,9 +125,71 @@ describe("Better Auth routes", () => {
 
     const signOutResponse = await app.request("/api/auth/sign-out", {
       method: "POST",
-      headers: { cookie },
+      headers: { cookie, "content-type": "application/json" },
+      body: "{}",
     });
     expect(signOutResponse.status).toBe(204);
+
+    const closedSessionResponse = await app.request("/api/auth/get-session", {
+      headers: { cookie },
+    });
+    expect(closedSessionResponse.status).toBe(401);
+  });
+
+  it("normalizes unsuccessful Better Auth sign-out responses", async () => {
+    const handlerSpy = vi
+      .spyOn(auth, "handler")
+      .mockResolvedValueOnce(
+        Response.json(
+          { code: "FORBIDDEN", message: "Untrusted request origin" },
+          { status: 403 },
+        ),
+      );
+
+    try {
+      const rejectedSignOut = await app.request("/api/auth/sign-out", {
+        method: "POST",
+      });
+
+      expect(rejectedSignOut.status).toBe(403);
+      await expect(rejectedSignOut.json()).resolves.toEqual({
+        error: {
+          code: "FORBIDDEN",
+          message: "The sign-out request was rejected.",
+        },
+      });
+    } finally {
+      handlerSpy.mockRestore();
+    }
+  });
+
+  it("preserves separate session cookie headers on successful sign-out", async () => {
+    const internalResponse = new Response(null, { status: 204 });
+    internalResponse.headers.append(
+      "set-cookie",
+      "first=one; Path=/; HttpOnly",
+    );
+    internalResponse.headers.append(
+      "set-cookie",
+      "second=two; Path=/; HttpOnly",
+    );
+    const handlerSpy = vi
+      .spyOn(auth, "handler")
+      .mockResolvedValueOnce(internalResponse);
+
+    try {
+      const response = await app.request("/api/auth/sign-out", {
+        method: "POST",
+      });
+
+      expect(response.status).toBe(204);
+      expect(response.headers.getSetCookie()).toEqual([
+        "first=one; Path=/; HttpOnly",
+        "second=two; Path=/; HttpOnly",
+      ]);
+    } finally {
+      handlerSpy.mockRestore();
+    }
   });
 
   it("maps invalid credentials and invalid registration input to validation errors", async () => {

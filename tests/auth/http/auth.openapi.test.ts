@@ -50,6 +50,9 @@ describe("Authentication OpenAPI contract", () => {
     );
     expect(document.paths["/api/auth/sign-out"].post.responses).toMatchObject({
       204: expect.anything(),
+      400: expect.anything(),
+      403: expect.anything(),
+      500: expect.anything(),
     });
     expect(document.components.schemas.AuthRegistration).toMatchObject({
       required: ["name", "email", "password"],

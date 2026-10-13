@@ -33,6 +33,14 @@
 - [x] T11. Ejecutar la validación completa de la fase y comprobar compatibilidad con las rutas existentes, dependencias de capas, formato y documentación. (RF-1 a RF-27)
       Hecho cuando: pasan `npm test`, `npm run typecheck`, `npm run lint`, `npm run format`, `git diff --check`, y se verifica que esta fase no define ni evalúa permisos ni protege accidentalmente lecturas.
 
+- [x] T12. Confiar en el origen exacto del frontend local solo durante development. (RF-29, RF-30)
+      Hecho cuando: Better Auth conserva `BETTER_AUTH_URL`, añade `http://localhost:5174` únicamente con `NODE_ENV=development` y las pruebas comprueban que test/production no lo agregan.
+      Evidencia: `src/features/auth/trusted-origins.ts` conserva `BETTER_AUTH_URL` y agrega el origen local solo en development; `auth.config.ts` entrega esa lista a Better Auth. `tests/auth/application/auth-trusted-origins.test.ts` verifica development, test y production (3 pruebas pasaron). El modo efectivo del backend local es development y `/health` sigue respondiendo HTTP 200. `npm run typecheck`, `npm run lint`, `npm run format`, `npm run build` y la prueba focalizada pasaron.
+
+- [x] T13. No ocultar respuestas no exitosas de Better Auth durante sign-out. (RF-31)
+      Hecho cuando: solo una respuesta exitosa/idempotente se traduce a `204`; los errores internos se normalizan, documentan en OpenAPI y una prueba confirma que un fallo del handler no aparenta cerrar la sesión.
+      Evidencia: `auth.routes.ts` comprueba `response.ok` antes de emitir `204`, normaliza errores y conserva cabeceras `Set-Cookie` separadas. OpenAPI documenta `400`, `403` y `500`. Las pruebas verifican el rechazo del handler sin falso `204`, cookies múltiples, ciclo de sesión e integración desde `http://localhost:5174` con sign-out JSON `{}`. Pasaron las 14 pruebas focalizadas de rutas, sesiones, OpenAPI, origen local y política de trusted origins, además de `npm run typecheck`, `npm run lint`, `npm run format`, `npm run build` y `git diff --check`. La T39 frontend verificó contra este backend en Chromium login/cookie/sesión y logout `204` seguido de sesión `401`; el cliente corrigió el cuerpo JSON vacío que provocaba `400 BAD_REQUEST`.
+
 ## Orden y dependencias
 
 | Tarea | Depende de          | Motivo                                                                             |
@@ -48,6 +56,8 @@
 | T9    | T1, T4              | Las pruebas de ciclo de vida requieren persistencia y handler funcional.           |
 | T10   | T4, T5              | Las pruebas de sesiones múltiples requieren cookies y middleware funcionales.      |
 | T11   | T6, T7, T8, T9, T10 | La validación final depende de toda la fase integrada.                             |
+| T12   | T2, T11             | La allowlist usa la configuración existente de Better Auth y requiere prueba por entorno. |
+| T13   | T4, T8, T10, T12    | La ruta debe distinguir un sign-out confirmado de un error interno del handler.   |
 
 ## Cobertura de requisitos
 
@@ -81,3 +91,6 @@
 | RF-26 | T4, T9          | Campos desconocidos se ignoran en las tres operaciones de autenticación.           |
 | RF-27 | T3, T8, T9      | Respuestas contienen solo metadatos de sesión permitidos.                          |
 | RF-28 | T6, T11         | DELETE desactiva lógicamente el producto y devuelve la respuesta pública definida. |
+| RF-29 | T12             | El origen del frontend local se confía en desarrollo junto a `BETTER_AUTH_URL`. |
+| RF-30 | T12             | El origen local no se agrega automáticamente fuera de development.                 |
+| RF-31 | T13             | Errores no exitosos de sign-out no se presentan como logout exitoso.                |
